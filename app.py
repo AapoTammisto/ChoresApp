@@ -715,6 +715,7 @@ def reject_completion(completion_id):
     
     completion = TaskCompletion.query.get_or_404(completion_id)
     task = db.session.get(Task, completion.task_id)
+    child = db.session.get(User, completion.user_id)
     
     # Reset task status to in_progress
     task.status = 'in_progress'
