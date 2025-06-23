@@ -72,9 +72,9 @@
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="children-tab" data-bs-toggle="tab" data-bs-target="#children" type="button" role="tab">
+        <a class="nav-link" href="{{ url_for('manage_children') }}" role="tab">
             <i class="fas fa-child"></i> Lapset
-        </button>
+        </a>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
@@ -351,58 +351,6 @@
                 <p class="text-muted">Luo ensimmäinen palkinto aloittaaksesi!</p>
                 <a href="{{ url_for('create_reward') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Luo palkinto
-                </a>
-            </div>
-        {% endif %}
-    </div>
-    
-    <!-- Children Tab -->
-    <div class="tab-pane fade" id="children" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5><i class="fas fa-child"></i> Lapset</h5>
-            <a href="{{ url_for('create_child') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Lisää lapsi
-            </a>
-        </div>
-        
-        {% if children %}
-            {% for child in children %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">
-                                <i class="fas fa-child text-primary"></i> {{ child.username }}
-                            </h6>
-                            <p class="card-text text-muted mb-0">
-                                <i class="fas fa-star text-warning"></i> {{ child.points }} kokonaispisteet
-                            </p>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-muted">Jäsen {{ child.created_at.strftime('%b %Y') }} alkaen</small>
-                            <div class="mt-2 d-flex gap-2">
-                                <a href="{{ url_for('edit_child_points', child_id=child.id) }}" 
-                                   class="btn btn-outline-warning btn-sm" 
-                                   title="Muokkaa pisteitä">
-                                    <i class="fas fa-edit"></i> Pisteet
-                                </a>
-                                <a href="{{ url_for('child_history', child_id=child.id) }}" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-history"></i> Historia
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-4">
-                <i class="fas fa-child fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Ei vielä lapsia lisätty</h5>
-                <p class="text-muted">Lisää lapsesi aloittaaksesi tehtävien antamisen!</p>
-                <a href="{{ url_for('create_child') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Lisää lapsi
                 </a>
             </div>
         {% endif %}
