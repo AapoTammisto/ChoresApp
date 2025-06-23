@@ -123,13 +123,13 @@ def login():
         password = request.form['password']
         
         # Hardcoded parent account
-        if password == 'lapsethommiin':
+        if password == '2025':
             # Get or create the parent user
             parent = User.query.filter_by(username='Vanhempi').first()
             if not parent:
                 parent = User(
                     username='Vanhempi',
-                    password_hash=generate_password_hash('lapsethommiin'),
+                    password_hash=generate_password_hash('2025'),
                     role='parent'
                 )
                 db.session.add(parent)
