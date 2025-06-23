@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, Response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+import csv
+from io import StringIO
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
@@ -1247,6 +1249,26 @@ def view_audit_log():
         return redirect(url_for('login'))
     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
     return render_template('audit_log.html', logs=logs)
+
+@app.route('/parent/audit_log/download')
+def download_audit_log():
+    if 'user_id' not in session or session['role'] != 'parent':
+        return redirect(url_for('login'))
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Timestamp', 'User ID', 'Username', 'Action', 'IP Address', 'User Agent'])
+    for log in logs:
+        writer.writerow([
+            log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            log.user_id,
+            log.username,
+            log.action,
+            log.ip_address,
+            log.user_agent
+        ])
+    output.seek(0)
+    return Response(output, mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=audit_log.csv'})
 
 def log_action(action):
     from flask import request, session
