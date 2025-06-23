@@ -421,13 +421,10 @@ def pick_task(task_id):
         return redirect(url_for('login'))
     
     task = Task.query.get_or_404(task_id)
-    if task.status != 'available' and not task.always_available:
-        flash('Tämä tehtävä ei ole vapaana')
-        return redirect(url_for('child_dashboard'))
-    
-    # If it's an always available task that was completed, create a new instance
-    if task.always_available and task.status == 'completed':
-        # Create a new task instance from the template
+    user_id = session['user_id']
+
+    if task.always_available:
+        # Always create a new instance for the child
         new_task = Task(
             title=task.title,
             description=task.description,
@@ -435,19 +432,24 @@ def pick_task(task_id):
             difficulty=task.difficulty,
             due_date=task.due_date,
             always_available=False,  # The new instance is not always available
-            assigned_children=task.assigned_children,  # Copy the assigned children
-            template_id=task.template_id
+            assigned_children=task.assigned_children,
+            template_id=task.template_id,
+            status='in_progress',
+            assigned_to=user_id
         )
         db.session.add(new_task)
-        db.session.flush()  # Get the new task ID
-        task = new_task
-    
-    task.status = 'in_progress'
-    task.assigned_to = session['user_id']
-    db.session.commit()
-    
-    flash('Tehtävä valittu onnistuneesti!')
-    return redirect(url_for('child_dashboard'))
+        db.session.commit()
+        flash('Tehtävä valittu onnistuneesti!')
+        return redirect(url_for('child_dashboard'))
+    else:
+        if task.status != 'available':
+            flash('Tämä tehtävä ei ole vapaana')
+            return redirect(url_for('child_dashboard'))
+        task.status = 'in_progress'
+        task.assigned_to = user_id
+        db.session.commit()
+        flash('Tehtävä valittu onnistuneesti!')
+        return redirect(url_for('child_dashboard'))
 
 @app.route('/child/tasks/<int:task_id>/complete')
 def complete_task(task_id):
