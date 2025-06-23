@@ -81,6 +81,12 @@
                                         </span>
                                     {% endif %}
                                 {% endfor %}
+                                {# Targeting badge #}
+                                {% if task.assigned_children %}
+                                    <span class="badge bg-primary"><i class="fas fa-user"></i> Kohdistettu sinulle</span>
+                                {% else %}
+                                    <span class="badge bg-success"><i class="fas fa-users"></i> Kaikille lapsille</span>
+                                {% endif %}
                             </div>
                             <a href="{{ url_for('pick_task', task_id=task.id) }}" class="btn btn-success btn-sm">
                                 <i class="fas fa-hand-paper"></i> Valitse tehtävä
@@ -124,6 +130,12 @@
                                         </span>
                                     {% endif %}
                                 {% endfor %}
+                                {# Targeting badge #}
+                                {% if task.assigned_children %}
+                                    <span class="badge bg-primary"><i class="fas fa-user"></i> Kohdistettu sinulle</span>
+                                {% else %}
+                                    <span class="badge bg-success"><i class="fas fa-users"></i> Kaikille lapsille</span>
+                                {% endif %}
                                 <span class="badge bg-warning">Kesken</span>
                             </div>
                             <a href="{{ url_for('complete_task', task_id=task.id) }}" 
@@ -170,6 +182,12 @@
                                         </span>
                                     {% endif %}
                                 {% endfor %}
+                                {# Targeting badge #}
+                                {% if task.assigned_children %}
+                                    <span class="badge bg-primary"><i class="fas fa-user"></i> Kohdistettu sinulle</span>
+                                {% else %}
+                                    <span class="badge bg-success"><i class="fas fa-users"></i> Kaikille lapsille</span>
+                                {% endif %}
                                 <span class="badge bg-warning">
                                     <i class="fas fa-clock"></i> Odottaa hyväksyntää
                                 </span>
