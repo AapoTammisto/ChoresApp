@@ -503,6 +503,7 @@ def create_child():
         
         db.session.add(child)
         db.session.commit()
+        log_action(f'Parent created child: {username}')
         flash('Lapsen tili luotu onnistuneesti!')
         return redirect(url_for('manage_children'))
     
@@ -547,6 +548,7 @@ def create_template():
         
         db.session.add(template)
         db.session.commit()
+        log_action(f'Parent created task template: {title}')
         flash('Tehtäväpohja luotu onnistuneesti!')
         return redirect(url_for('manage_templates'))
     
@@ -562,6 +564,7 @@ def delete_template(template_id):
     
     db.session.delete(template)
     db.session.commit()
+    log_action(f'Parent deleted task template: {template.title}')
     flash('Tehtäväpohja poistettu onnistuneesti!')
     return redirect(url_for('parent_dashboard'))
 
@@ -587,6 +590,7 @@ def edit_template(template_id):
         template.difficulty = difficulty
         
         db.session.commit()
+        log_action(f'Parent edited task template: {template.title}')
         flash('Tehtäväpohja päivitetty onnistuneesti!')
         return redirect(url_for('parent_dashboard'))
     
@@ -629,6 +633,7 @@ def create_task_from_template(template_id):
     
     db.session.add(task)
     db.session.commit()
+    log_action(f'Parent created task from template: {template.title}')
     flash('Tehtävä luotu tehtäväpohjasta onnistuneesti!')
     return redirect(url_for('parent_dashboard'))
 
@@ -643,6 +648,7 @@ def toggle_always_available(task_id):
     db.session.commit()
     
     status = "toistuva" if task.always_available else "kertatyö"
+    log_action(f'Parent toggled always_available for task: {task.title} (now: {task.always_available})')
     flash(f'Tehtävä on nyt {status}!')
     return redirect(url_for('parent_dashboard'))
 
@@ -686,6 +692,7 @@ def approve_completion(completion_id):
     task.status = 'completed'
     
     db.session.commit()
+    log_action(f'Parent approved task completion: {task.title} for {child.username}')
     flash(f'Tehtävä hyväksytty! {child.username} sai {completion.points_earned} pistettä.')
     return redirect(url_for('parent_approvals'))
 
@@ -871,6 +878,7 @@ def remove_completion(child_id, completion_id):
     db.session.delete(completion)
     db.session.commit()
     
+    log_action(f'Parent removed task completion: {task.title} for {child.username}')
     flash(f'Tehtävävalmistus poistettu! {child.username} menetti {completion.points_earned} pistettä.')
     return redirect(url_for('child_history', child_id=child_id))
 
@@ -919,6 +927,7 @@ def remove_all_completions(child_id):
     
     db.session.commit()
     
+    log_action(f'Parent removed all completions and purchases for child: {child.username}')
     flash(f'Kaikki historia poistettu! {child.username} menetti {total_task_points_removed} pistettä tehtävistä ja {total_reward_points_spent} pistettä palkinnoista. Pisteet nollattu.')
     return redirect(url_for('child_history', child_id=child_id))
 
@@ -954,7 +963,7 @@ def create_reward():
         
         db.session.add(reward)
         db.session.commit()
-        
+        log_action(f'Parent created reward: {title}')
         flash('Palkinto luotu onnistuneesti!')
         return redirect(url_for('parent_dashboard'))
     
@@ -975,6 +984,7 @@ def edit_reward(reward_id):
         assigned_children = request.form.getlist('assigned_children')
         reward.assigned_children = ','.join(assigned_children) if assigned_children else None
         db.session.commit()
+        log_action(f'Parent edited reward: {reward.title}')
         flash('Palkinto päivitetty onnistuneesti!')
         return redirect(url_for('manage_rewards'))
     
@@ -990,6 +1000,7 @@ def delete_reward(reward_id):
     
     db.session.delete(reward)
     db.session.commit()
+    log_action(f'Parent deleted reward: {reward.title}')
     flash('Palkinto poistettu onnistuneesti!')
     return redirect(url_for('manage_rewards'))
 
@@ -1002,6 +1013,7 @@ def toggle_reward(reward_id):
     reward.is_active = not reward.is_active
     db.session.commit()
     status = "aktiivinen" if reward.is_active else "ei aktiivinen"
+    log_action(f'Parent toggled reward active: {reward.title} (now: {reward.is_active})')
     flash(f'Palkinto on nyt {status}!')
     return redirect(url_for('manage_rewards'))
 
@@ -1094,6 +1106,7 @@ def approve_reward_purchase(purchase_id):
     purchase.approved_at = datetime.utcnow()
     purchase.approved_by = session['user_id']
     db.session.commit()
+    log_action(f'Parent approved reward purchase: {reward.title} for {child.username}')
     flash(f'Palkinto hyväksytty! {child.username} sai palkinnon: {reward.title}')
     return redirect(url_for('parent_approvals'))
 
@@ -1110,6 +1123,7 @@ def reject_reward_purchase(purchase_id):
     child.points += purchase.points_spent
     db.session.delete(purchase)
     db.session.commit()
+    log_action(f'Parent rejected reward purchase: {reward.title} for {child.username}')
     flash(f'Palkintopyyntö hylätty! {child.username} ei saanut palkintoa.')
     return redirect(url_for('parent_approvals'))
 
@@ -1132,6 +1146,7 @@ def edit_child_points(child_id):
             # Update the child's points
             child.points = new_points
             db.session.commit()
+            log_action(f'Parent edited points for child: {child.username} (new points: {new_points})')
             
             if points_difference > 0:
                 flash(f'{child.username} sai {points_difference} lisäpistettä. Uusi saldo: {new_points} pistettä.')
@@ -1181,6 +1196,7 @@ def create_difficulty_setting():
         
         db.session.add(difficulty_setting)
         db.session.commit()
+        log_action(f'Parent created difficulty setting: {name}')
         flash('Vaikeustaso luotu onnistuneesti!')
         return redirect(url_for('manage_difficulty_settings'))
     
@@ -1199,6 +1215,7 @@ def edit_difficulty_setting(setting_id):
         difficulty_setting.color = request.form['color']
         
         db.session.commit()
+        log_action(f'Parent edited difficulty setting: {difficulty_setting.name}')
         flash('Vaikeustaso päivitetty onnistuneesti!')
         return redirect(url_for('manage_difficulty_settings'))
     
@@ -1221,6 +1238,7 @@ def delete_difficulty_setting(setting_id):
     
     db.session.delete(difficulty_setting)
     db.session.commit()
+    log_action(f'Parent deleted difficulty setting: {difficulty_setting.name}')
     flash('Vaikeustaso poistettu onnistuneesti!')
     return redirect(url_for('manage_difficulty_settings'))
 
