@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Luo vaikeustaso - Kotityöapp{% endblock %}
+{% block header %}Luo uusi vaikeustaso{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">
+                    <i class="fas fa-tag"></i> Nimi (sisäinen) *
+                </label>
+                <input type="text" class="form-control" id="name" name="name" 
+                       placeholder="esim. easy, medium, hard" required>
+                <small class="text-muted">Lyhyt nimi, jota käytetään järjestelmässä (ei välilyöntejä)</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="display_name" class="form-label">
+                    <i class="fas fa-eye"></i> Näytettävä nimi *
+                </label>
+                <input type="text" class="form-control" id="display_name" name="display_name" 
+                       placeholder="esim. Helppo, Keskitaso, Vaikea" required>
+                <small class="text-muted">Nimi, joka näytetään käyttöliittymässä</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="points" class="form-label">
+                    <i class="fas fa-star"></i> Pisteet *
+                </label>
+                <input type="number" class="form-control" id="points" name="points" 
+                       min="1" max="100" value="5" required>
+                <small class="text-muted">Montako pistettä tämä vaikeustaso on arvoinen</small>
+            </div>
+            
+            <div class="mb-4">
+                <label for="color" class="form-label">
+                    <i class="fas fa-palette"></i> Väri *
+                </label>
+                <select class="form-control" id="color" name="color" required>
+                    <option value="secondary">Harmaa</option>
+                    <option value="primary">Sininen</option>
+                    <option value="success">Vihreä</option>
+                    <option value="warning">Keltainen</option>
+                    <option value="danger">Punainen</option>
+                    <option value="info">Vaaleansininen</option>
+                    <option value="dark">Tumma</option>
+                    <option value="light">Vaalea</option>
+                </select>
+                <small class="text-muted">Väri, jota käytetään vaikeustason merkinä</small>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('manage_difficulty_settings') }}" class="btn btn-secondary flex-fill">
+                    <i class="fas fa-arrow-left"></i> Peruuta
+                </a>
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-plus"></i> Luo vaikeustaso
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

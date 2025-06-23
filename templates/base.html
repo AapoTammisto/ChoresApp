@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kotityöapp{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        /* Cache-busting: Updated styles - v1.1 */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --accent-color: #FF9800;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 500px;
+            min-height: calc(100vh - 40px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #45a049);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e68900);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #d32f2f);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: none;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .task-card {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .task-card.medium {
+            border-left-color: var(--warning-color);
+        }
+
+        .task-card.hard {
+            border-left-color: var(--danger-color);
+        }
+
+        .task-card.opacity-50 {
+            opacity: 0.5;
+            filter: grayscale(30%);
+        }
+
+        .task-card.opacity-50:hover {
+            transform: none;
+        }
+
+        .waiting-task {
+            background-color: #f8f9fa;
+            border-left-color: #6c757d !important;
+        }
+
+        .waiting-task .card-title {
+            color: #6c757d !important;
+        }
+
+        .waiting-task .points-badge,
+        .waiting-task .difficulty-badge {
+            opacity: 0.6;
+        }
+
+        .points-badge {
+            background: linear-gradient(135deg, var(--accent-color), #e68900);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .difficulty-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            border: none;
+            border-radius: 15px;
+            padding: 6px 12px;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+            font-size: 0.85rem;
+        }
+
+        .btn-logout:hover {
+            background: linear-gradient(135deg, #c82333, #bd2130);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-logout:active {
+            transform: translateY(0);
+        }
+
+        /* Approval Badge Styling */
+        .approval-badge {
+            animation: pulse 2s infinite;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            }
+        }
+
+        /* Highlight approvals tab when there are pending items */
+        .nav-tabs .nav-link.has-pending {
+            background: linear-gradient(135deg, #ffc107, #ff8c00);
+            color: white;
+            border: 2px solid #dc3545;
+        }
+
+        /* Approval needed stats card styling */
+        .stats-card.approval-needed {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            border: 2px solid #dc3545;
+            position: relative;
+            animation: approvalPulse 3s infinite;
+        }
+
+        @keyframes approvalPulse {
+            0% {
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+            }
+            50% {
+                box-shadow: 0 6px 12px rgba(220, 53, 69, 0.6);
+            }
+            100% {
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+            }
+        }
+
+        .approval-indicator {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 25px;
+            margin-right: 10px;
+            padding: 10px 20px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        /* Floating Approval Notification */
+        .floating-approval-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border-radius: 25px;
+            padding: 15px 20px;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            animation: slideInLeft 0.5s ease-out, notificationPulse 2s infinite;
+            max-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .floating-approval-notification:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(220, 53, 69, 0.6);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-content i {
+            font-size: 1.2rem;
+            animation: bellRing 1s infinite;
+        }
+
+        .notification-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes notificationPulse {
+            0% {
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+            }
+            50% {
+                box-shadow: 0 7px 20px rgba(220, 53, 69, 0.7);
+            }
+            100% {
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+            }
+        }
+
+        @keyframes bellRing {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: rotate(10deg);
+            }
+            20%, 40%, 60%, 80% {
+                transform: rotate(-10deg);
+            }
+        }
+
+        /* Dropdown fixes for mobile and laptop - Enhanced */
+        .dropdown {
+            position: relative !important;
+            display: inline-block !important;
+        }
+
+        .dropdown-toggle {
+            min-width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            background: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+            color: #6c757d !important;
+            transition: all 0.3s ease !important;
+            padding: 8px !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
+            z-index: 100 !important;
+        }
+
+        .dropdown-toggle:hover {
+            background: #e9ecef !important;
+            border-color: #adb5bd !important;
+            color: #495057 !important;
+        }
+
+        .dropdown-toggle:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+            outline: none !important;
+        }
+
+        .dropdown-menu {
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            left: auto !important;
+            z-index: 9999 !important;
+            min-width: 200px !important;
+            margin-top: 5px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+            border: 1px solid #dee2e6 !important;
+            background: white !important;
+            display: none !important;
+            transform: none !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        .dropdown-menu.show {
+            display: block !important;
+            z-index: 9999 !important;
+            position: absolute !important;
+        }
+
+        .dropdown-menu-end {
+            right: 0 !important;
+            left: auto !important;
+        }
+
+        .dropdown-item {
+            padding: 10px 16px !important;
+            font-size: 0.9rem !important;
+            transition: all 0.2s ease !important;
+            display: block !important;
+            width: 100% !important;
+            text-decoration: none !important;
+            color: #212529 !important;
+            background: transparent !important;
+            border: 0 !important;
+            white-space: nowrap !important;
+            position: relative !important;
+            z-index: 10000 !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #16181b !important;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
+
+        /* Mobile-specific dropdown improvements - Enhanced */
+        @media (max-width: 768px) {
+            .dropdown-toggle {
+                min-width: 44px !important;
+                height: 44px !important;
+                font-size: 16px !important;
+                padding: 10px !important;
+            }
+            
+            .dropdown-menu {
+                min-width: 180px !important;
+                font-size: 0.95rem !important;
+                max-width: 90vw !important;
+            }
+            
+            .dropdown-item {
+                padding: 12px 16px !important;
+                font-size: 1rem !important;
+            }
+        }
+
+        /* Ensure dropdown is always visible and accessible */
+        .dropdown.show .dropdown-menu {
+            display: block !important;
+            z-index: 1050 !important;
+            position: absolute !important;
+        }
+
+        /* Force dropdown to be above other elements */
+        .card .dropdown {
+            position: relative !important;
+        }
+
+        .card .dropdown-menu {
+            z-index: 9999 !important;
+        }
+
+        /* Additional positioning fixes for laptop view */
+        @media (min-width: 769px) {
+            .dropdown-menu {
+                position: absolute !important;
+                z-index: 10000 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .dropdown-menu.show {
+                position: absolute !important;
+                z-index: 10000 !important;
+            }
+            
+            /* Ensure dropdown container has enough space */
+            .card {
+                margin-bottom: 30px !important;
+            }
+            
+            .card-body {
+                position: relative !important;
+                z-index: 1000 !important;
+            }
+        }
+
+        /* Ensure dropdown container has proper positioning context */
+        .card-body {
+            position: relative !important;
+        }
+
+        .dropdown {
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        /* Override any potential Bootstrap conflicts */
+        .btn.dropdown-toggle {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: flex !important;
+            min-width: 40px !important;
+            height: 40px !important;
+        }
+
+        .dropdown-menu.show {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: block !important;
+            z-index: 9999 !important;
+        }
+
+        /* Ensure dropdown button is always visible on mobile */
+        @media (max-width: 768px) {
+            .btn.dropdown-toggle {
+                min-width: 44px !important;
+                height: 44px !important;
+                font-size: 16px !important;
+                padding: 10px !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                display: flex !important;
+            }
+            
+            .dropdown-menu.show {
+                max-width: 90vw !important;
+                z-index: 9999 !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .floating-approval-notification {
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                max-width: none;
+                padding: 12px 15px;
+            }
+
+            .notification-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Additional spacing for task cards to prevent dropdown overlap */
+        .card {
+            margin-bottom: 30px !important;
+            position: relative !important;
+        }
+
+        /* Specific spacing for task template cards */
+        .col-12.col-sm-6.col-md-12.col-lg-12 .card {
+            margin-bottom: 30px !important;
+        }
+
+        /* Specific spacing for active task cards */
+        .task-card {
+            margin-bottom: 30px !important;
+        }
+
+        /* Ensure dropdown menu has proper spacing */
+        .dropdown-menu {
+            margin-bottom: 10px !important;
+            padding: 5px 0 !important;
+            min-width: 160px !important;
+        }
+
+        /* Make dropdown items more compact */
+        .dropdown-item {
+            padding: 6px 16px !important;
+            font-size: 14px !important;
+            line-height: 1.2 !important;
+        }
+
+        /* Force dropdown divider to be visible */
+        .dropdown-divider {
+            margin: 3px 0 !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        /* Make dropdown icons smaller */
+        .dropdown-item i {
+            font-size: 12px !important;
+            margin-right: 8px !important;
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            /* Ensure dropdown buttons are visible and properly sized */
+            .dropdown .btn {
+                width: 40px !important;
+                height: 40px !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background-color: #ffffff !important;
+                border: 2px solid #dee2e6 !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
+            
+            /* Make dropdown button more visible */
+            .dropdown .btn:hover {
+                background-color: #f8f9fa !important;
+                border-color: #adb5bd !important;
+            }
+            
+            /* Ensure dropdown menu is visible and properly positioned */
+            .dropdown-menu {
+                position: absolute !important;
+                right: 0 !important;
+                left: auto !important;
+                min-width: 200px !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+                border: 1px solid #dee2e6 !important;
+            }
+            
+            /* Make dropdown items very compact on mobile */
+            .dropdown-item {
+                padding: 3px 10px !important;
+                font-size: 11px !important;
+                line-height: 1.0 !important;
+            }
+            
+            /* Fix badge text overflow */
+            .badge {
+                max-width: 100% !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            
+            /* Specific styling for "Toistuva" badge - very compact */
+            .badge.bg-info {
+                font-size: 0.6rem !important;
+                padding: 0.15rem 0.3rem !important;
+                max-width: 90px !important;
+            }
+            
+            /* Ensure proper card layout on mobile with more height */
+            .card-body {
+                position: relative !important;
+                padding-right: 50px !important;
+                min-height: 130px !important;
+                padding: 1rem !important;
+            }
+            
+            /* Position dropdown absolutely in top-right */
+            .card-body .dropdown {
+                position: absolute !important;
+                top: 10px !important;
+                right: 10px !important;
+                z-index: 1000 !important;
+            }
+            
+            /* Increase task card height on mobile */
+            .task-card {
+                min-height: 150px !important;
+            }
+            
+            /* Make badge containers wrap better */
+            .d-flex.align-items-center.gap-2 {
+                flex-wrap: wrap !important;
+                gap: 3px !important;
+            }
+            
+            /* Add small margin to badges to prevent overlap */
+            .badge {
+                margin-bottom: 1px !important;
+                margin-right: 2px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fas fa-tasks"></i> {% block header %}Kotityöapp{% endblock %}</h1>
+            {% if session.username %}
+            <small>Tervetuloa, {{ session.username }}!</small>
+            {% endif %}
+        </div>
+        
+        <div class="content">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Enhanced dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all dropdowns
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                console.log('Initializing dropdown:', dropdown);
+                
+                // Ensure proper Bootstrap initialization
+                if (typeof bootstrap !== 'undefined') {
+                    new bootstrap.Dropdown(dropdown);
+                }
+                
+                // Add click handler for debugging
+                dropdown.addEventListener('click', function(e) {
+                    console.log('Dropdown clicked:', this);
+                });
+            });
+            
+            // Debug: Log all dropdown elements
+            console.log('Found dropdowns:', dropdowns.length);
+        });
+        
+        // Force dropdown visibility and positioning
+        function ensureDropdownVisibility() {
+            var dropdowns = document.querySelectorAll('.dropdown-menu');
+            dropdowns.forEach(function(menu) {
+                if (menu.classList.contains('show')) {
+                    menu.style.display = 'block';
+                    menu.style.zIndex = '10000';
+                    menu.style.position = 'absolute';
+                    menu.style.maxHeight = 'none';
+                    menu.style.overflow = 'visible';
+                    
+                    // Ensure menu is visible and not cut off
+                    var rect = menu.getBoundingClientRect();
+                    var viewportHeight = window.innerHeight;
+                    var viewportWidth = window.innerWidth;
+                    
+                    // If menu would be cut off at bottom, position it above the button
+                    if (rect.bottom > viewportHeight - 20) {
+                        menu.style.top = 'auto';
+                        menu.style.bottom = '100%';
+                        menu.style.marginTop = '0';
+                        menu.style.marginBottom = '10px';
+                    }
+                    
+                    // If menu would be cut off at right, position it to the left
+                    if (rect.right > viewportWidth - 20) {
+                        menu.style.right = 'auto';
+                        menu.style.left = '0';
+                    }
+                    
+                    // Ensure all dropdown items are visible
+                    var items = menu.querySelectorAll('.dropdown-item');
+                    items.forEach(function(item) {
+                        item.style.position = 'relative';
+                        item.style.zIndex = '10001';
+                        item.style.display = 'block';
+                    });
+                }
+            });
+        }
+        
+        // Call this function periodically
+        setInterval(ensureDropdownVisibility, 100);
+        
+        // Also call on window resize
+        window.addEventListener('resize', ensureDropdownVisibility);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Muokkaa pisteitä - {{ child.username }} - Kotityöapp{% endblock %}
+{% block header %}Muokkaa pisteitä{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-edit text-primary"></i> Muokkaa pisteitä: {{ child.username }}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Tämänhetkiset tiedot</h6>
+                    <p class="mb-1"><strong>Lapsi:</strong> {{ child.username }}</p>
+                    <p class="mb-1"><strong>Nykyiset pisteet:</strong> <span class="badge bg-primary fs-6">{{ child.points }}</span></p>
+                    <p class="mb-0"><strong>Jäsen alkaen:</strong> {{ child.created_at.strftime('%d.%m.%Y') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="points" class="form-label">
+                    <i class="fas fa-star text-warning"></i> Uusi pistemäärä
+                </label>
+                <input type="number" 
+                       class="form-control form-control-lg" 
+                       id="points" 
+                       name="points" 
+                       value="{{ child.points }}" 
+                       min="0" 
+                       required>
+                <div class="form-text">
+                    Syötä uusi kokonaispistemäärä. Negatiiviset arvot muutetaan automaattisesti nollaksi.
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Huomio!</h6>
+                <p class="mb-0">
+                    Tämä toiminto muuttaa lapsen pisteet suoraan. Käytä sitä vain korjataksesi virheitä 
+                    tai muuttaaksesi pisteitä käytöksen vuoksi. Muutokset tallennetaan välittömästi.
+                </p>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Tallenna muutokset
+                </button>
+                <a href="{{ url_for('manage_children') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Takaisin lasten hallintaan
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-bolt"></i> Pikatoiminnot</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+                <a href="{{ url_for('child_history', child_id=child.id) }}" class="btn btn-outline-info w-100 mb-2">
+                    <i class="fas fa-history"></i> Katso historia
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{{ url_for('parent_dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">
+                    <i class="fas fa-home"></i> Hallintapaneeli
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

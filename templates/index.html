@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Kotityöapp - Kirjaudu sisään{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1 class="display-4 text-primary">
+                    <i class="fas fa-home"></i> Kotityöapp
+                </h1>
+                <p class="lead text-muted">Hallitse kotityöt ja palkitse lapset!</p>
+            </div>
+
+            <div class="row">
+                <!-- Parent Login -->
+                <div class="col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header text-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie text-primary"></i> Vanhempi
+                            </h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <p class="text-muted mb-3">Hallitse tehtäviä ja palkintoja</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Kirjaudu sisään
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Child Selection -->
+                <div class="col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header text-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-child text-success"></i> Lapsi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if children %}
+                                <p class="text-muted text-center mb-3">Valitse nimesi</p>
+                                <form method="POST" action="{{ url_for('child_login') }}">
+                                    <div class="d-grid gap-2">
+                                        {% for child in children %}
+                                        <button type="submit" name="child_id" value="{{ child.id }}" 
+                                                class="btn btn-outline-success btn-lg">
+                                            <i class="fas fa-child"></i> {{ child.username }}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </form>
+                            {% else %}
+                                <div class="text-center">
+                                    <i class="fas fa-child fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Ei lapsia lisätty</p>
+                                    <small class="text-muted">Vanhempi voi lisätä lapsia hallintapaneelista</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info -->
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Miten se toimii?</h6>
+                    <div class="row">
+                        <div class="col-4">
+                            <i class="fas fa-tasks fa-2x text-primary mb-2"></i>
+                            <p class="small text-muted">1. Vanhempi luo tehtäviä</p>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-hand-paper fa-2x text-success mb-2"></i>
+                            <p class="small text-muted">2. Lapsi valitsee tehtäviä</p>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                            <p class="small text-muted">3. Ansaitse pisteitä</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

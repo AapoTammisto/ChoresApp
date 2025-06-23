@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Lisää lapsi - Kotityöapp{% endblock %}
+{% block header %}Lisää uusi lapsi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-4">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i> Lapsen nimi *
+                </label>
+                <input type="text" class="form-control" id="username" name="username" required 
+                       placeholder="esim. Emma, Alex, Max">
+                <small class="text-muted">Tämä nimi näkyy lapselle kirjautumissivulla</small>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('manage_children') }}" class="btn btn-secondary flex-fill">
+                    <i class="fas fa-arrow-left"></i> Peruuta
+                </a>
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-plus"></i> Lisää lapsi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tips for Parents -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Vinkkejä lasten lisäämiseen</h6>
+    </div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Yksinkertaiset nimet:</strong> Käytä etunimeä tai lempinimeä
+            </li>
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Ei salasanaa tarvita:</strong> Lapsi valitsee vain nimensä listasta
+            </li>
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Helppo käyttö:</strong> Lapsi voi aloittaa heti ilman kirjautumista
+            </li>
+            <li class="mb-0">
+                <i class="fas fa-check text-success"></i>
+                <strong>Testaa yhdessä:</strong> Näytä lapselle miten sovellus toimii
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Suggested Names -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-users"></i> Ehdotuksia nimiksi</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+                <h6 class="text-primary">8-vuotiaille:</h6>
+                <ul class="list-unstyled small">
+                    <li>• Emma</li>
+                    <li>• Alex</li>
+                    <li>• Max</li>
+                    <li>• Sophie</li>
+                </ul>
+            </div>
+            <div class="col-6">
+                <h6 class="text-success">11-vuotiaille:</h6>
+                <ul class="list-unstyled small">
+                    <li>• Emma</li>
+                    <li>• Alex</li>
+                    <li>• Max</li>
+                    <li>• Sophie</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Hyväksynnät - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>Hyväksynnät</span>
+    <div>
+        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-success btn-sm me-2">
+            <i class="fas fa-arrow-left"></i> Takaisin
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+            <i class="fas fa-sign-out-alt"></i> Poistu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="fas fa-check-circle"></i> Odottaa hyväksyntää</h4>
+    {% set total_pending = (pending_approvals|length) + (pending_reward_approvals|length) %}
+    {% if total_pending > 0 %}
+    <span class="badge bg-danger fs-6">{{ total_pending }} odottaa</span>
+    {% endif %}
+</div>
+
+<!-- Task Completions -->
+{% if pending_approvals %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-tasks"></i> Valmiit tehtävät ({{ pending_approvals|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% for completion in pending_approvals %}
+            <div class="card mb-3 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-check-circle text-warning"></i> 
+                                {{ completion.task.title }}
+                            </h6>
+                            <p class="card-text text-muted small mb-2">
+                                Valmistunut: {{ completion.completed_at.strftime('%d.%m.%Y %H:%M') }}
+                            </p>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge">
+                                    <i class="fas fa-star"></i> {{ completion.points_earned }} pistettä
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-child"></i> 
+                                    {% for child in children %}
+                                        {% if child.id == completion.user_id %}{{ child.username }}{% endif %}
+                                    {% endfor %}
+                                </span>
+                                {% if completion.task.description %}
+                                <span class="badge bg-secondary">{{ completion.task.description }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('approve_completion', completion_id=completion.id) }}" 
+                               class="btn btn-success btn-sm"
+                               onclick="return confirm('Hyväksytkö tämän tehtävän?')">
+                                <i class="fas fa-check"></i> Hyväksy
+                            </a>
+                            <a href="{{ url_for('reject_completion', completion_id=completion.id) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Hylkäätkö tämän tehtävän?')">
+                                <i class="fas fa-times"></i> Hylkää
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<!-- Reward Purchases -->
+{% if pending_reward_approvals %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-gift"></i> Palkintopyynnöt ({{ pending_reward_approvals|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% for purchase in pending_reward_approvals %}
+            <div class="card mb-3 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-gift text-warning"></i> 
+                                {{ purchase.reward.title }}
+                            </h6>
+                            <p class="card-text text-muted small mb-2">
+                                Pyydetty: {{ purchase.purchased_at.strftime('%d.%m.%Y %H:%M') }}
+                            </p>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge text-danger">
+                                    <i class="fas fa-star"></i> {{ purchase.points_spent }} pistettä
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-child"></i> 
+                                    {% for child in children %}
+                                        {% if child.id == purchase.user_id %}{{ child.username }}{% endif %}
+                                    {% endfor %}
+                                </span>
+                                {% if purchase.reward.description %}
+                                <span class="badge bg-secondary">{{ purchase.reward.description }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('approve_reward_purchase', purchase_id=purchase.id) }}" 
+                               class="btn btn-success btn-sm"
+                               onclick="return confirm('Hyväksytkö tämän palkintopyynnön?')">
+                                <i class="fas fa-check"></i> Hyväksy
+                            </a>
+                            <a href="{{ url_for('reject_reward_purchase', purchase_id=purchase.id) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Hylkäätkö tämän palkintopyynnön?')">
+                                <i class="fas fa-times"></i> Hylkää
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+{% if not pending_approvals and not pending_reward_approvals %}
+    <div class="text-center py-5">
+        <i class="fas fa-check-circle fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">Ei odottavia hyväksyntöjä</h4>
+        <p class="text-muted">Kaikki pyynnöt on käsitelty!</p>
+        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Takaisin hallintapaneeliin
+        </a>
+    </div>
+{% endif %}
+{% endblock %} 

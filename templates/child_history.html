@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}{{ child.username }} - Tehtävähistoria - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>{{ child.username }} - Historia</span>
+    <div>
+        <a href="{{ url_for('parent_dashboard') }}?tab=children" class="btn btn-success btn-sm me-2">
+            <i class="fas fa-arrow-left"></i> Takaisin
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+            <i class="fas fa-sign-out-alt"></i> Poistu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Child Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ total_points }}</div>
+            <small>Kokonaispisteet</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ total_completions }}</div>
+            <small>Valmiit tehtävät</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ "%.1f"|format(average_points_per_task) }}</div>
+            <small>Keskim. pisteet/tehtävä</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ child.points }}</div>
+            <small>Nykyiset pisteet</small>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs" id="historyTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+            <i class="fas fa-history"></i> Tehtävähistoria
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab">
+            <i class="fas fa-calendar-week"></i> Viikkopisteet
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
+            <i class="fas fa-calendar-alt"></i> Kuukausipisteet
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">
+            <i class="fas fa-chart-bar"></i> Tilastot
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab">
+            <i class="fas fa-gift"></i> Ostetut palkinnot
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="historyTabsContent">
+    <!-- Task History Tab -->
+    <div class="tab-pane fade show active" id="history" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Kaikki valmiit tehtävät</h5>
+            {% if completions %}
+            <div>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#removeAllModal">
+                    <i class="fas fa-trash"></i> Poista kaikki valmiit tehtävät
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if completions %}
+            {% for completion in completions %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-check-circle text-success"></i> 
+                                {{ completion.task.title }}
+                            </h6>
+                            <p class="card-text text-muted small mb-2">
+                                Valmistunut: {{ completion.approved_at.strftime('%d.%m.%Y klo %H:%M') }}
+                            </p>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="points-badge">
+                                    <i class="fas fa-star"></i> +{{ completion.points_earned }} pistettä
+                                </span>
+                                {% for difficulty_setting in difficulty_settings %}
+                                    {% if difficulty_setting.name == completion.task.difficulty %}
+                                        <span class="badge bg-{{ difficulty_setting.color }}">
+                                            {{ difficulty_setting.display_name }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block mb-2">
+                                {{ completion.approved_at.strftime('%d.%m.%Y') }}
+                            </small>
+                            <a href="{{ url_for('remove_completion', child_id=child.id, completion_id=completion.id) }}" 
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Haluatko varmasti poistaa tämän tehtävävalmistuksen? Lapsi menettää {{ completion.points_earned }} pistettä.')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä valmiita tehtäviä</h5>
+                <p class="text-muted">{{ child.username }} ei ole vielä valmistuttanut yhtään tehtävää.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Weekly Points Tab -->
+    <div class="tab-pane fade" id="weekly" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-calendar-week"></i> Viikkopisteet (viimeiset 8 viikkoa)</h5>
+        
+        {% if weekly_points %}
+            <div class="row">
+                {% for week in weekly_points %}
+                <div class="col-md-6 col-lg-3 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">
+                                Viikko {{ week.week_start.strftime('%V') }}
+                            </h6>
+                            <div class="stats-number text-primary">{{ week.total }}</div>
+                            <small class="text-muted">{{ week.completions }} tehtävää</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-calendar-week fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei viikkopisteitä</h5>
+                <p class="text-muted">Ei vielä tietoja viikkopisteistä.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Monthly Points Tab -->
+    <div class="tab-pane fade" id="monthly" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-calendar-alt"></i> Kuukausipisteet (viimeiset 12 kuukautta)</h5>
+        
+        {% if monthly_points %}
+            <div class="row">
+                {% for month in monthly_points %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">
+                                {% set month_names = {
+                                    'January': 'Tammikuu',
+                                    'February': 'Helmikuu', 
+                                    'March': 'Maaliskuu',
+                                    'April': 'Huhtikuu',
+                                    'May': 'Toukokuu',
+                                    'June': 'Kesäkuu',
+                                    'July': 'Heinäkuu',
+                                    'August': 'Elokuu',
+                                    'September': 'Syyskuu',
+                                    'October': 'Lokakuu',
+                                    'November': 'Marraskuu',
+                                    'December': 'Joulukuu'
+                                } %}
+                                {{ month_names[month.month_start.strftime('%B')] }} {{ month.month_start.strftime('%Y') }}
+                            </h6>
+                            <div class="stats-number text-success">{{ month.total }}</div>
+                            <small class="text-muted">{{ month.completions }} tehtävää</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei kuukausipisteitä</h5>
+                <p class="text-muted">Ei vielä tietoja kuukausipisteistä.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics Tab -->
+    <div class="tab-pane fade" id="stats" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-chart-bar"></i> Tilastot</h5>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-tasks"></i> Yleiset tilastot</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Kokonaispisteet:</strong> {{ total_points }}
+                            </li>
+                            <li class="mb-2">
+                                <strong>Valmiit tehtävät:</strong> {{ total_completions }}
+                            </li>
+                            <li class="mb-2">
+                                <strong>Keskimäärin pisteitä per tehtävä:</strong> {{ "%.1f"|format(average_points_per_task) }}
+                            </li>
+                            <li class="mb-2">
+                                <strong>Nykyiset pisteet:</strong> {{ child.points }}
+                            </li>
+                            <li class="mb-2">
+                                <strong>Ostetut palkinnot:</strong> {{ total_reward_purchases }}
+                            </li>
+                            <li class="mb-2">
+                                <strong>Pisteet käytetty palkintoihin:</strong> {{ total_points_spent }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-star"></i> Suosituimmat tehtävät</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if most_common_tasks %}
+                            <ul class="list-unstyled">
+                                {% for task, count in most_common_tasks %}
+                                <li class="mb-2 d-flex justify-content-between">
+                                    <span>{{ task }}</span>
+                                    <span class="badge bg-primary">{{ count }} kertaa</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">Ei vielä tietoja suosituista tehtävistä.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rewards Tab -->
+    <div class="tab-pane fade" id="rewards" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-gift"></i> Ostetut palkinnot</h5>
+        
+        {% if reward_purchases %}
+            {% for purchase in reward_purchases %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-gift text-warning"></i> 
+                                {{ purchase.reward.title }}
+                            </h6>
+                            <p class="card-text text-muted small mb-2">
+                                Ostettu: {{ purchase.purchased_at.strftime('%d.%m.%Y klo %H:%M') }}
+                            </p>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="points-badge text-danger">
+                                    <i class="fas fa-star"></i> -{{ purchase.points_spent }} pistettä
+                                </span>
+                                {% if purchase.reward.description %}
+                                <span class="badge bg-info">{{ purchase.reward.description }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">
+                                {{ purchase.purchased_at.strftime('%d.%m.%Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei ostettuja palkintoja</h5>
+                <p class="text-muted">{{ child.username }} ei ole vielä ostanut yhtään palkintoa.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Remove All Completions Modal -->
+{% if completions %}
+<div class="modal fade" id="removeAllModal" tabindex="-1" aria-labelledby="removeAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeAllModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Vahvista poisto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Haluatko varmasti poistaa kaikki {{ completions|length }} valmiita tehtävää?</strong></p>
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    Tämä toiminto poistaa kaikki {{ child.username }}:n tehtävävalmistukset ja vähentää {{ total_points }} pistettä.
+                </p>
+                <p class="text-muted small">Tätä toimintoa ei voi perua.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Peruuta
+                </button>
+                <a href="{{ url_for('remove_all_completions', child_id=child.id) }}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Poista kaikki
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh stats every 30 seconds
+setInterval(function() {
+    // You could add AJAX calls here to refresh data
+}, 30000);
+</script>
+{% endblock %} 

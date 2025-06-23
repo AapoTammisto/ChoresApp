@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Hallitse palkintoja - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>Hallitse palkintoja</span>
+    <div>
+        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-success btn-sm me-2">
+            <i class="fas fa-arrow-left"></i> Takaisin
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+            <i class="fas fa-sign-out-alt"></i> Poistu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5><i class="fas fa-gift"></i> Palkinnot</h5>
+    <a href="{{ url_for('create_reward') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Uusi palkinto
+    </a>
+</div>
+
+{% if rewards %}
+    <div class="row">
+        {% for reward in rewards %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">{{ reward.title }}</h6>
+                        <span class="badge bg-{{ 'success' if reward.is_active else 'secondary' }}">
+                            {{ 'Aktiivinen' if reward.is_active else 'Poistettu käytöstä' }}
+                        </span>
+                    </div>
+                    
+                    <p class="card-text text-muted small mb-3">
+                        {{ reward.description or 'Ei kuvausta' }}
+                    </p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-primary fs-6">
+                            <i class="fas fa-star"></i> {{ reward.points_cost }} pistettä
+                        </span>
+                        <small class="text-muted">
+                            Luotu: {{ reward.created_at.strftime('%d.%m.%Y') }}
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('toggle_reward', reward_id=reward.id) }}" 
+                           class="btn btn-outline-{{ 'warning' if reward.is_active else 'success' }} btn-sm flex-fill"
+                           onclick="return confirm('{{ 'Poistetaanko palkinto käytöstä?' if reward.is_active else 'Aktivoidaanko palkinto?' }}')">
+                            <i class="fas fa-{{ 'pause' if reward.is_active else 'play' }}"></i>
+                            {{ 'Poista käytöstä' if reward.is_active else 'Aktivoi' }}
+                        </a>
+                        <a href="{{ url_for('delete_reward', reward_id=reward.id) }}" 
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Oletko varma, että haluat poistaa tämän palkinnon?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Ei vielä palkintoja</h5>
+        <p class="text-muted">Luo ensimmäinen palkinto aloittaaksesi!</p>
+        <a href="{{ url_for('create_reward') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Luo palkinto
+        </a>
+    </div>
+{% endif %}
+{% endblock %} 

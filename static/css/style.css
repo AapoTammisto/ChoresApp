@@ -1,0 +1,141 @@
+/* Custom spacing for cards to prevent dropdown overlap */
+.task-card {
+    margin-bottom: 2rem !important;
+}
+
+.card.h-100 {
+    margin-bottom: 2rem !important;
+}
+
+/* Ensure dropdown menus have proper z-index and positioning */
+.dropdown-menu {
+    z-index: 1050 !important;
+    position: absolute !important;
+}
+
+/* Additional spacing for task template cards */
+.col-12.col-sm-6.col-md-12.col-lg-12.mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+/* Ensure proper spacing in active tasks section */
+#tasks .card {
+    margin-bottom: 2rem !important;
+}
+
+/* Make dropdown menu items smaller and more compact */
+.dropdown-menu {
+    padding: 0.25rem 0 !important;
+    min-width: 160px !important;
+}
+
+.dropdown-item {
+    padding: 0.375rem 1rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.2 !important;
+}
+
+.dropdown-divider {
+    margin: 0.25rem 0 !important;
+}
+
+/* Make dropdown icons smaller */
+.dropdown-item i {
+    font-size: 0.8rem !important;
+    margin-right: 0.5rem !important;
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 768px) {
+    /* Ensure dropdown button is visible on mobile */
+    .dropdown .btn {
+        min-width: 40px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 4px !important;
+        z-index: 1000 !important;
+        position: relative !important;
+    }
+    
+    /* Make dropdown button more prominent on mobile */
+    .dropdown .btn:hover {
+        background-color: #e9ecef !important;
+    }
+    
+    /* Ensure dropdown menu is properly positioned on mobile */
+    .dropdown-menu {
+        position: absolute !important;
+        right: 0 !important;
+        left: auto !important;
+        min-width: 180px !important;
+        margin-top: 5px !important;
+    }
+    
+    /* Make dropdown items even smaller on mobile */
+    .dropdown-item {
+        padding: 4px 12px !important;
+        font-size: 12px !important;
+        line-height: 1.1 !important;
+    }
+    
+    /* Fix text overflow for badges on mobile */
+    .badge {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+    
+    /* Specific fix for "Toistuva" badge - make it smaller */
+    .badge.bg-info {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.4rem !important;
+        max-width: 100px !important;
+    }
+    
+    /* Ensure card content doesn't overflow on mobile */
+    .card-body {
+        overflow: hidden !important;
+        min-height: 120px !important;
+        padding: 1rem !important;
+    }
+    
+    /* Make flex layout more mobile-friendly */
+    .d-flex.justify-content-between.align-items-start {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+    
+    /* Ensure dropdown button stays in top-right corner */
+    .dropdown {
+        position: absolute !important;
+        top: 10px !important;
+        right: 10px !important;
+        z-index: 1000 !important;
+    }
+    
+    /* Adjust card padding to accommodate dropdown */
+    .card-body {
+        padding-right: 60px !important;
+    }
+    
+    /* Increase card height on mobile for better content fit */
+    .task-card {
+        min-height: 140px !important;
+    }
+    
+    /* Make badge container more flexible */
+    .d-flex.align-items-center.gap-2 {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+    
+    /* Ensure badges don't get cut off */
+    .badge {
+        margin-bottom: 2px !important;
+    }
+} 

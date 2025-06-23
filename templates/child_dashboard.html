@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Lapsi hallintapaneeli - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>Omat tehtävät - {{ user.username }}</span>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+        <i class="fas fa-sign-out-alt"></i> Poistu
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Points Display -->
+<div class="stats-card mb-4">
+    <div class="stats-number">{{ user.points }}</div>
+    <small>Kokonaispisteet ansaittu</small>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs" id="childTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if not my_tasks %}active{% endif %}" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button" role="tab">
+            <i class="fas fa-list"></i> Vapaana
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if my_tasks %}active{% endif %}" id="my-tasks-tab" data-bs-toggle="tab" data-bs-target="#my-tasks" type="button" role="tab">
+            <i class="fas fa-user-check"></i> Omat tehtävät
+            {% if my_tasks %}
+            <span class="badge bg-warning ms-1">{{ my_tasks|length }}</span>
+            {% endif %}
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+            <i class="fas fa-clock"></i> Odottaa hyväksyntää
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pending-rewards-tab" data-bs-toggle="tab" data-bs-target="#pending-rewards" type="button" role="tab">
+            <i class="fas fa-gift"></i> Palkintopyynnöt
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+            <i class="fas fa-trophy"></i> Valmiit
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab">
+            <i class="fas fa-gift"></i> Palkinnot
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="childTabsContent">
+    <!-- Available Tasks Tab -->
+    <div class="tab-pane fade {% if not my_tasks %}show active{% endif %}" id="available" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-list"></i> Vapaana olevat tehtävät</h5>
+        
+        {% if available_tasks %}
+            {% for task in available_tasks %}
+            <div class="card task-card {{ task.difficulty }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">{{ task.title }}</h6>
+                            {% if task.description %}
+                            <p class="card-text text-muted small mb-2">{{ task.description }}</p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge">
+                                    <i class="fas fa-star"></i> {{ task.points }} pistettä
+                                </span>
+                                {% for difficulty_setting in difficulty_settings %}
+                                    {% if difficulty_setting.name == task.difficulty %}
+                                        <span class="badge bg-{{ difficulty_setting.color }}">
+                                            {{ difficulty_setting.display_name }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <a href="{{ url_for('pick_task', task_id=task.id) }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-hand-paper"></i> Valitse tehtävä
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vapaana olevia tehtäviä</h5>
+                <p class="text-muted">Tarkista myöhemmin uusien tehtävien varalta!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- My Tasks Tab -->
+    <div class="tab-pane fade {% if my_tasks %}show active{% endif %}" id="my-tasks" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-user-check"></i> Omat nykyiset tehtävät</h5>
+        
+        {% if my_tasks %}
+            {% for task in my_tasks %}
+            <div class="card task-card {{ task.difficulty }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">{{ task.title }}</h6>
+                            {% if task.description %}
+                            <p class="card-text text-muted small mb-2">{{ task.description }}</p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge">
+                                    <i class="fas fa-star"></i> {{ task.points }} pistettä
+                                </span>
+                                {% for difficulty_setting in difficulty_settings %}
+                                    {% if difficulty_setting.name == task.difficulty %}
+                                        <span class="badge bg-{{ difficulty_setting.color }}">
+                                            {{ difficulty_setting.display_name }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="badge bg-warning">Kesken</span>
+                            </div>
+                            <a href="{{ url_for('complete_task', task_id=task.id) }}" 
+                               class="btn btn-success btn-sm"
+                               onclick="return confirm('Oletko varma, että haluat merkitä tämän tehtävän valmiiksi?')">
+                                <i class="fas fa-check"></i> Merkitse valmiiksi
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-user-clock fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei nykyisiä tehtäviä</h5>
+                <p class="text-muted">Valitse tehtävä Vapaana-välilehdeltä aloittaaksesi!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pending Tasks Tab -->
+    <div class="tab-pane fade" id="pending" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-clock"></i> Odottaa hyväksyntää</h5>
+        
+        {% if pending_tasks %}
+            {% for task in pending_tasks %}
+            <div class="card task-card {{ task.difficulty }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">{{ task.title }}</h6>
+                            {% if task.description %}
+                            <p class="card-text text-muted small mb-2">{{ task.description }}</p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge">
+                                    <i class="fas fa-star"></i> {{ task.points }} pistettä
+                                </span>
+                                {% for difficulty_setting in difficulty_settings %}
+                                    {% if difficulty_setting.name == task.difficulty %}
+                                        <span class="badge bg-{{ difficulty_setting.color }}">
+                                            {{ difficulty_setting.display_name }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> Odottaa hyväksyntää
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-info-circle"></i> Vanhempi tarkistaa tehtävän ja antaa pisteet
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei odottaa hyväksyntää</h5>
+                <p class="text-muted">Kaikki valmistuneet tehtäväsi on hyväksytty!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pending Rewards Tab -->
+    <div class="tab-pane fade" id="pending-rewards" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-gift"></i> Odottaa palkintohyväksyntää</h5>
+        
+        {% if pending_reward_purchases %}
+            {% for purchase in pending_reward_purchases %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-gift text-warning"></i> 
+                                {{ purchase.reward.title }}
+                            </h6>
+                            {% if purchase.reward.description %}
+                            <p class="card-text text-muted small mb-2">{{ purchase.reward.description }}</p>
+                            {% endif %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="points-badge text-danger">
+                                    <i class="fas fa-star"></i> {{ purchase.points_spent }} pistettä
+                                </span>
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> Odottaa hyväksyntää
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-info-circle"></i> Vanhempi tarkistaa palkintopyynnön
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei odottavia palkintopyyntöjä</h5>
+                <p class="text-muted">Kaikki palkintopyynnöt on käsitelty!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Completed Tasks Tab -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+        <h5 class="mb-3"><i class="fas fa-trophy"></i> Viimeksi valmiit</h5>
+        
+        {% if completed_tasks %}
+            {% for completion in completed_tasks %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1">
+                                {% for task in available_tasks %}
+                                    {% if task.id == completion.task_id %}{{ task.title }}{% endif %}
+                                {% endfor %}
+                                {% for task in my_tasks %}
+                                    {% if task.id == completion.task_id %}{{ task.title }}{% endif %}
+                                {% endfor %}
+                            </h6>
+                            <p class="card-text text-muted small mb-0">
+                                Valmis {{ completion.completed_at.strftime('%d.%m.%Y klo %H:%M') }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="points-badge">
+                                <i class="fas fa-star"></i> +{{ completion.points_earned }}
+                            </span>
+                            {% if completion.approved_by_parent %}
+                            <span class="badge bg-success ms-1">
+                                <i class="fas fa-check"></i> Hyväksytty
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning ms-1">
+                                <i class="fas fa-clock"></i> Odottaa
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä valmiita tehtäviä</h5>
+                <p class="text-muted">Valmista ensimmäinen tehtävä nähdäksesi sen täällä!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Rewards Tab -->
+    <div class="tab-pane fade" id="rewards" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-gift"></i> Palkinnot</h5>
+            <a href="{{ url_for('child_rewards') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-gift"></i> Katso kaikki palkinnot
+            </a>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Palkinnot:</strong> Käytä ansaitsemiasi pisteitä palkintojen ostamiseen! 
+            <a href="{{ url_for('child_rewards') }}" class="alert-link">Katso kaikki saatavilla olevat palkinnot</a>.
+        </div>
+        
+        <div class="text-center py-4">
+            <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Palkintokauppa</h5>
+            <p class="text-muted">Käytä pisteitäsi palkintojen ostamiseen!</p>
+            <a href="{{ url_for('child_rewards') }}" class="btn btn-primary">
+                <i class="fas fa-shopping-cart"></i> Siirry palkintokauppaan
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Achievement Section -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-medal"></i> Saavutukset</h6>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-4">
+                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                <h6>{{ user.points }}</h6>
+                <small class="text-muted">Kokonaispisteet</small>
+            </div>
+            <div class="col-4">
+                <i class="fas fa-tasks fa-2x text-primary mb-2"></i>
+                <h6>{{ completed_tasks|length }}</h6>
+                <small class="text-muted">Tehtyjä tehtäviä</small>
+            </div>
+            <div class="col-4">
+                <i class="fas fa-fire fa-2x text-danger mb-2"></i>
+                <h6>{{ my_tasks|length }}</h6>
+                <small class="text-muted">Kesken</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh stats every 30 seconds
+setInterval(function() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update points display
+            document.querySelector('.stats-number').textContent = data.total_points;
+        })
+        .catch(error => console.error('Error refreshing stats:', error));
+}, 30000);
+</script>
+{% endblock %} 

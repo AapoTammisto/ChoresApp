@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}Vanhempien hallintapaneeli - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>Vanhempien hallintapaneeli</span>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+        <i class="fas fa-sign-out-alt"></i> Poistu
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-number" id="total-tasks">-</div>
+            <small>Aktiiviset tehtävät</small>
+        </div>
+    </div>
+    <div class="col-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-number" id="completed-tasks">-</div>
+            <small>Valmiit</small>
+        </div>
+    </div>
+    <div class="col-6 mb-3">
+        <div class="stats-card">
+            <div class="stats-number" id="pending-tasks">-</div>
+            <small>Kesken</small>
+        </div>
+    </div>
+    <div class="col-6 mb-3">
+        <div class="stats-card {% if (pending_approvals|length) + (pending_reward_approvals|length) > 0 %}approval-needed{% endif %}">
+            <div class="stats-number" id="pending-approvals">-</div>
+            <small>Odottaa hyväksyntää</small>
+            {% if (pending_approvals|length) + (pending_reward_approvals|length) > 0 %}
+            <div class="approval-indicator">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs" id="parentTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
+            <i class="fas fa-tasks"></i> Tehtävät
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if (pending_approvals|length) + (pending_reward_approvals|length) > 0 %}has-pending{% endif %}" 
+           href="{{ url_for('parent_approvals') }}" role="tab">
+            <i class="fas fa-check-circle"></i> Hyväksynnät
+            {% set total_pending = (pending_approvals|length) + (pending_reward_approvals|length) %}
+            {% if total_pending > 0 %}
+            <span class="badge bg-danger ms-1 approval-badge">{{ total_pending }}</span>
+            {% endif %}
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab">
+            <i class="fas fa-layer-group"></i> Tehtäväpohjat
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab">
+            <i class="fas fa-gift"></i> Palkinnot
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="children-tab" data-bs-toggle="tab" data-bs-target="#children" type="button" role="tab">
+            <i class="fas fa-child"></i> Lapset
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+            <i class="fas fa-cog"></i> Asetukset
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="parentTabsContent">
+    <!-- Tasks Tab -->
+    <div class="tab-pane fade show active" id="tasks" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-list"></i> Aktiiviset tehtävät</h5>
+            <a href="{{ url_for('create_task') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Uusi tehtävä
+            </a>
+        </div>
+        
+        {% if tasks %}
+            {% for task in tasks %}
+            <div class="card task-card {{ task.difficulty }} mb-4">
+                <div class="card-body">
+                    <h6 class="card-title mb-1">{{ task.title }}</h6>
+                    {% if task.description %}
+                    <p class="card-text text-muted small mb-2">{{ task.description }}</p>
+                    {% endif %}
+                    {% set diff = None %}
+                    {% for setting in difficulty_settings %}
+                        {% if setting.name == task.difficulty %}
+                            {% set diff = setting %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-star"></i> {{ task.points }} pistettä
+                        </span>
+                        <span class="badge bg-{{ diff.color if diff else 'secondary' }}">
+                            {{ diff.display_name if diff else task.difficulty }}
+                        </span>
+                        <span class="badge bg-{{ 'success' if task.status == 'completed' else 'warning' if task.status == 'in_progress' else 'secondary' }}">
+                            {% if task.status == 'completed' %}Valmis
+                            {% elif task.status == 'in_progress' %}Kesken
+                            {% elif task.status == 'pending_approval' %}Odottaa hyväksyntää
+                            {% else %}Vapaana{% endif %}
+                        </span>
+                        {% if task.always_available %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-infinity"></i> Toistuva
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if task.assigned_children %}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-users"></i> Kohdistettu: 
+                            {% set assigned_ids = task.assigned_children.split(',') %}
+                            {% for child in children %}
+                                {% if child.id|string in assigned_ids %}
+                                    <span class="badge bg-primary me-1">{{ child.username }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-users"></i> Kohdistettu: 
+                            <span class="badge bg-success me-1">Kaikille lapsille</span>
+                        </small>
+                    </div>
+                    {% endif %}
+                    {% if task.assigned_to %}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-user"></i> Annettu: 
+                            {% for child in children %}
+                                {% if child.id == task.assigned_to %}{{ child.username }}{% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('edit_task', task_id=task.id) }}" 
+                           class="btn btn-outline-primary btn-sm flex-fill">
+                            <i class="fas fa-edit"></i> Muokkaa
+                        </a>
+                        <a href="{{ url_for('toggle_always_available', task_id=task.id) }}" 
+                           class="btn btn-outline-{{ 'success' if task.always_available else 'secondary' }} btn-sm flex-fill"
+                           onclick="return confirm('{{ 'Haluatko poistaa toistuva -ominaisuuden?' if task.always_available else 'Haluatko asettaa tehtävän toistuvaksi?' }}')">
+                            <i class="fas fa-infinity"></i> 
+                            {{ 'Toistuva' if task.always_available else 'Kertatyö' }}
+                        </a>
+                        <a href="{{ url_for('delete_task', task_id=task.id) }}" 
+                           class="btn btn-outline-danger btn-sm flex-fill"
+                           onclick="return confirm('Oletko varma, että haluat poistaa tämän tehtävän?')">
+                            <i class="fas fa-trash"></i> Poista
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä tehtäviä</h5>
+                <p class="text-muted">Luo ensimmäinen tehtävä aloittaaksesi!</p>
+                <a href="{{ url_for('create_task') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Luo tehtävä
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Templates Tab -->
+    <div class="tab-pane fade" id="templates" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-layer-group"></i> Tehtäväpohjat</h5>
+            <a href="{{ url_for('create_template') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Uusi tehtäväpohja
+            </a>
+        </div>
+        
+        {% if task_templates %}
+            <div class="row">
+                {% for template in task_templates %}
+                <div class="col-12 col-sm-6 col-md-12 col-lg-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title">{{ template.title }}</h6>
+                                    <p class="card-text text-muted small">{{ template.description or 'Ei kuvausta' }}</p>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge bg-primary">{{ template.points }} pistettä</span>
+                                        {% for difficulty_setting in difficulty_settings %}
+                                            {% if difficulty_setting.name == template.difficulty %}
+                                                <span class="badge bg-{{ difficulty_setting.color }}">
+                                                    {{ difficulty_setting.display_name }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <form action="{{ url_for('create_task_from_template', template_id=template.id) }}" method="POST">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="always_available_{{ template.id }}" name="always_available">
+                                            <label class="form-check-label small" for="always_available_{{ template.id }}">
+                                                Toistuva
+                                            </label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Kohdista lapsille:</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="assign_all_{{ template.id }}" name="assign_all" checked>
+                                                <label class="form-check-label small" for="assign_all_{{ template.id }}">
+                                                    Kaikille lapsille
+                                                </label>
+                                            </div>
+                                            {% if children %}
+                                            <div class="ms-3">
+                                                {% for child in children %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input child-checkbox-{{ template.id }}" type="checkbox" 
+                                                           name="assigned_children" value="{{ child.id }}" disabled>
+                                                    <label class="form-check-label small" for="child_{{ template.id }}_{{ child.id }}">
+                                                        {{ child.username }}
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-plus"></i> Luo tehtävä
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('edit_template', template_id=template.id) }}" 
+                                       class="btn btn-outline-primary btn-sm flex-fill">
+                                        <i class="fas fa-edit"></i> Muokkaa
+                                    </a>
+                                    <a href="{{ url_for('delete_template', template_id=template.id) }}" 
+                                       class="btn btn-outline-danger btn-sm flex-fill"
+                                       onclick="return confirm('Haluatko varmasti poistaa tämän tehtäväpohjan?')">
+                                        <i class="fas fa-trash"></i> Poista
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä tehtäväpohjia</h5>
+                <p class="text-muted">Luo ensimmäinen tehtäväpohja aloittaaksesi!</p>
+                <a href="{{ url_for('create_template') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Luo tehtäväpohja
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Rewards Tab -->
+    <div class="tab-pane fade" id="rewards" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-gift"></i> Palkinnot</h5>
+            <a href="{{ url_for('create_reward') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Uusi palkinto
+            </a>
+        </div>
+        
+        {% if rewards %}
+            <div class="row">
+                {% for reward in rewards %}
+                <div class="col-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ reward.title }}</h6>
+                            <p class="card-text text-muted small">{{ reward.description or 'Ei kuvausta' }}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary">{{ reward.points_cost }} pistettä</span>
+                            </div>
+                            {% if reward.assigned_children %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-users"></i> Kohdistettu: 
+                                    {% set assigned_ids = reward.assigned_children.split(',') %}
+                                    {% for child in children %}
+                                        {% if child.id|string in assigned_ids %}
+                                            <span class="badge bg-primary me-1">{{ child.username }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </small>
+                            </div>
+                            {% else %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-users"></i> Kohdistettu: 
+                                    <span class="badge bg-success me-1">Kaikille lapsille</span>
+                                </small>
+                            </div>
+                            {% endif %}
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('edit_reward', reward_id=reward.id) }}" 
+                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="fas fa-edit"></i> Muokkaa
+                                </a>
+                                <a href="{{ url_for('toggle_reward', reward_id=reward.id) }}" 
+                                   class="btn btn-outline-{{ 'success' if reward.is_active else 'secondary' }} btn-sm flex-fill"
+                                   onclick="return confirm('{{ 'Haluatko deaktivoida tämän palkinnon?' if reward.is_active else 'Haluatko aktivoida tämän palkinnon?' }}')">
+                                    <i class="fas fa-{{ 'check' if reward.is_active else 'times' }}"></i> 
+                                    {{ 'Aktiivinen' if reward.is_active else 'Ei aktiivinen' }}
+                                </a>
+                                <a href="{{ url_for('delete_reward', reward_id=reward.id) }}" 
+                                   class="btn btn-outline-danger btn-sm flex-fill"
+                                   onclick="return confirm('Haluatko varmasti poistaa tämän palkinnon?')">
+                                    <i class="fas fa-trash"></i> Poista
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä palkintoja</h5>
+                <p class="text-muted">Luo ensimmäinen palkinto aloittaaksesi!</p>
+                <a href="{{ url_for('create_reward') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Luo palkinto
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Children Tab -->
+    <div class="tab-pane fade" id="children" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-child"></i> Lapset</h5>
+            <a href="{{ url_for('create_child') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Lisää lapsi
+            </a>
+        </div>
+        
+        {% if children %}
+            {% for child in children %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">
+                                <i class="fas fa-child text-primary"></i> {{ child.username }}
+                            </h6>
+                            <p class="card-text text-muted mb-0">
+                                <i class="fas fa-star text-warning"></i> {{ child.points }} kokonaispisteet
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">Jäsen {{ child.created_at.strftime('%b %Y') }} alkaen</small>
+                            <div class="mt-2 d-flex gap-2">
+                                <a href="{{ url_for('edit_child_points', child_id=child.id) }}" 
+                                   class="btn btn-outline-warning btn-sm" 
+                                   title="Muokkaa pisteitä">
+                                    <i class="fas fa-edit"></i> Pisteet
+                                </a>
+                                <a href="{{ url_for('child_history', child_id=child.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-history"></i> Historia
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-child fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Ei vielä lapsia lisätty</h5>
+                <p class="text-muted">Lisää lapsesi aloittaaksesi tehtävien antamisen!</p>
+                <a href="{{ url_for('create_child') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Lisää lapsi
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Settings Tab -->
+    <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-cog"></i> Asetukset</h5>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-layer-group"></i> Vaikeustasot</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            Määritä vaikeustasot ja niihin liittyvät pisteet. Nämä määrittävät automaattisesti 
+                            tehtävien pisteet kun valitset vaikeustason.
+                        </p>
+                        <a href="{{ url_for('manage_difficulty_settings') }}" class="btn btn-primary">
+                            <i class="fas fa-cog"></i> Hallitse vaikeustasoja
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Approval Notification -->
+{% if (pending_approvals|length) + (pending_reward_approvals|length) > 0 %}
+<div class="floating-approval-notification" onclick="document.getElementById('approvals-tab').click()">
+    <div class="notification-content">
+        <i class="fas fa-bell"></i>
+        <span class="notification-text">
+            {{ (pending_approvals|length) + (pending_reward_approvals|length) }} hyväksyntää odottaa!
+        </span>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load stats on page load
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-tasks').textContent = data.total_tasks;
+            document.getElementById('completed-tasks').textContent = data.completed_tasks;
+            document.getElementById('pending-tasks').textContent = data.pending_tasks;
+            document.getElementById('pending-approvals').textContent = data.pending_approvals;
+        })
+        .catch(error => console.error('Error loading stats:', error));
+    
+    // Handle URL parameter for tab selection
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        const tabButton = document.getElementById(tabParam + '-tab');
+        if (tabButton) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Add active class to the specified tab
+            tabButton.classList.add('active');
+            const targetPane = document.getElementById(tabParam);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        }
+    }
+    
+    // Handle child assignment logic for template forms
+    document.querySelectorAll('[id^="assign_all_"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const templateId = this.id.split('_')[2];
+            const childCheckboxes = document.querySelectorAll(`.child-checkbox-${templateId}`);
+            childCheckboxes.forEach(childCheckbox => {
+                childCheckbox.disabled = this.checked;
+                if (this.checked) {
+                    childCheckbox.checked = false;
+                }
+            });
+        });
+    });
+    
+    // Handle individual child selection for template forms
+    document.querySelectorAll('[class*="child-checkbox-"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const templateId = this.className.match(/child-checkbox-(\d+)/)[1];
+            const assignAllCheckbox = document.getElementById(`assign_all_${templateId}`);
+            const allChildCheckboxes = document.querySelectorAll(`.child-checkbox-${templateId}`);
+            
+            if (this.checked) {
+                // If any individual child is selected, uncheck "assign all"
+                assignAllCheckbox.checked = false;
+                assignAllCheckbox.disabled = true;
+            } else {
+                // Check if any other child is still selected
+                const anyChildSelected = Array.from(allChildCheckboxes).some(cb => cb.checked);
+                if (!anyChildSelected) {
+                    // If no children are selected, enable "assign all" and check it by default
+                    assignAllCheckbox.disabled = false;
+                    assignAllCheckbox.checked = true;
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

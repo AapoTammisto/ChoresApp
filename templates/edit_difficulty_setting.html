@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Muokkaa vaikeustasoa - Kotityöapp{% endblock %}
+{% block header %}Muokkaa vaikeustasoa{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="display_name" class="form-label">
+                    <i class="fas fa-eye"></i> Näytettävä nimi *
+                </label>
+                <input type="text" class="form-control" id="display_name" name="display_name" 
+                       value="{{ difficulty_setting.display_name }}" required>
+                <small class="text-muted">Nimi, joka näytetään käyttöliittymässä</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="points" class="form-label">
+                    <i class="fas fa-star"></i> Pisteet *
+                </label>
+                <input type="number" class="form-control" id="points" name="points" 
+                       min="1" max="100" value="{{ difficulty_setting.points }}" required>
+                <small class="text-muted">Montako pistettä tämä vaikeustaso on arvoinen</small>
+            </div>
+            
+            <div class="mb-4">
+                <label for="color" class="form-label">
+                    <i class="fas fa-palette"></i> Väri *
+                </label>
+                <select class="form-control" id="color" name="color" required>
+                    <option value="secondary" {% if difficulty_setting.color == 'secondary' %}selected{% endif %}>Harmaa</option>
+                    <option value="primary" {% if difficulty_setting.color == 'primary' %}selected{% endif %}>Sininen</option>
+                    <option value="success" {% if difficulty_setting.color == 'success' %}selected{% endif %}>Vihreä</option>
+                    <option value="warning" {% if difficulty_setting.color == 'warning' %}selected{% endif %}>Keltainen</option>
+                    <option value="danger" {% if difficulty_setting.color == 'danger' %}selected{% endif %}>Punainen</option>
+                    <option value="info" {% if difficulty_setting.color == 'info' %}selected{% endif %}>Vaaleansininen</option>
+                    <option value="dark" {% if difficulty_setting.color == 'dark' %}selected{% endif %}>Tumma</option>
+                    <option value="light" {% if difficulty_setting.color == 'light' %}selected{% endif %}>Vaalea</option>
+                </select>
+                <small class="text-muted">Väri, jota käytetään vaikeustason merkinä</small>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('manage_difficulty_settings') }}" class="btn btn-secondary flex-fill">
+                    <i class="fas fa-arrow-left"></i> Peruuta
+                </a>
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-save"></i> Tallenna muutokset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Difficulty Setting Info -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Vaikeustason tiedot</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+                <small class="text-muted">Sisäinen nimi</small>
+                <p class="mb-1">{{ difficulty_setting.name }}</p>
+            </div>
+            <div class="col-6">
+                <small class="text-muted">Luotu</small>
+                <p class="mb-1">{{ difficulty_setting.created_at.strftime('%d.%m.%Y') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

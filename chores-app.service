@@ -1,0 +1,16 @@
+[Unit]
+Description=Family Chores App
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/ChoresApp
+ExecStart=/usr/bin/python3 /home/pi/ChoresApp/app.py
+Restart=always
+RestartSec=10
+Environment=FLASK_ENV=production
+Environment=FLASK_RUN_PORT=8080
+
+[Install]
+WantedBy=multi-user.target 

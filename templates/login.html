@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Vanhempi kirjautuminen - Kotityöapp{% endblock %}
+{% block header %}Vanhempi kirjautuminen{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <i class="fas fa-user-tie fa-3x text-primary mb-3"></i>
+    <h2 class="mb-3">Vanhempi kirjautuminen</h2>
+    <p class="text-muted">Kirjaudu sisään hallitsemaan perheesi tehtäviä ja palkintoja</p>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="mb-4">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i> Salasana
+                </label>
+                <input type="password" class="form-control" id="password" name="password" required 
+                       placeholder="Syötä vanhemman salasana">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-sign-in-alt"></i> Kirjaudu sisään
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-success">
+        <i class="fas fa-arrow-left"></i> Takaisin pääsivulle
+    </a>
+</div>
+{% endblock %} 

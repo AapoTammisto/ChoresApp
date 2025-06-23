@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Muokkaa palkintoa - Kotityöapp{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <span>Muokkaa palkintoa</span>
+    <div>
+        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-success btn-sm me-2">
+            <i class="fas fa-arrow-left"></i> Takaisin
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">
+            <i class="fas fa-sign-out-alt"></i> Poistu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit"></i> Muokkaa palkintoa</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Palkinnon nimi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ reward.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Kuvaus</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3">{{ reward.description or '' }}</textarea>
+                        <div class="form-text">Vapaaehtoinen kuvaus palkinnosta</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="points_cost" class="form-label">Pisteiden määrä <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="points_cost" name="points_cost" 
+                               value="{{ reward.points_cost }}" min="1" max="1000" required>
+                        <div class="form-text">Kuinka monta pistettä palkinto maksaa</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Kohdista lapsille:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="assign_all" name="assign_all" 
+                                   {% if not reward.assigned_children %}checked{% endif %}>
+                            <label class="form-check-label" for="assign_all">
+                                Kaikille lapsille
+                            </label>
+                        </div>
+                        {% if children %}
+                        <div class="ms-3">
+                            {% for child in children %}
+                            <div class="form-check">
+                                <input class="form-check-input child-checkbox" type="checkbox" 
+                                       name="assigned_children" value="{{ child.id }}" 
+                                       {% if reward.assigned_children and child.id|string in reward.assigned_children.split(',') %}checked{% endif %}
+                                       {% if not reward.assigned_children %}disabled{% endif %}>
+                                <label class="form-check-label" for="child_{{ child.id }}">
+                                    {{ child.username }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Tallenna muutokset
+                        </button>
+                        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Peruuta
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Handle child assignment logic
+document.addEventListener('DOMContentLoaded', function() {
+    const assignAllCheckbox = document.getElementById('assign_all');
+    const childCheckboxes = document.querySelectorAll('.child-checkbox');
+    
+    assignAllCheckbox.addEventListener('change', function() {
+        childCheckboxes.forEach(childCheckbox => {
+            childCheckbox.disabled = this.checked;
+            if (this.checked) {
+                childCheckbox.checked = false;
+            }
+        });
+    });
+    
+    // Handle individual child selection
+    childCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                assignAllCheckbox.checked = false;
+                assignAllCheckbox.disabled = true;
+            } else {
+                // Check if any other child is selected
+                const anyChildSelected = Array.from(childCheckboxes).some(cb => cb.checked);
+                if (!anyChildSelected) {
+                    assignAllCheckbox.disabled = false;
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

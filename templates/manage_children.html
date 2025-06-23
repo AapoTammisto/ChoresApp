@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Hallitse lapsia - Kotityöapp{% endblock %}
+{% block header %}Hallitse lapsia{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5><i class="fas fa-child"></i> Lasten tilit</h5>
+    <a href="{{ url_for('create_child') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Lisää lapsi
+    </a>
+</div>
+
+{% if children %}
+    {% for child in children %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                    <h6 class="card-title mb-1">
+                        <i class="fas fa-child text-primary"></i> {{ child.username }}
+                    </h6>
+                    <p class="card-text text-muted mb-2">
+                        <i class="fas fa-star text-warning"></i> {{ child.points }} kokonaispisteet ansaittu
+                    </p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> Jäsen {{ child.created_at.strftime('%B %Y') }} alkaen
+                    </small>
+                </div>
+                <div class="text-end">
+                    <div class="points-badge mb-2">
+                        <i class="fas fa-trophy"></i> {{ child.points }} pistettä
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('edit_child_points', child_id=child.id) }}" 
+                           class="btn btn-outline-warning btn-sm" 
+                           title="Muokkaa pisteitä">
+                            <i class="fas fa-edit"></i> Muokkaa pisteitä
+                        </a>
+                        <a href="{{ url_for('child_history', child_id=child.id) }}" 
+                           class="btn btn-outline-info btn-sm" 
+                           title="Katso historia">
+                            <i class="fas fa-history"></i> Historia
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">Tilin ID: {{ child.id }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Summary Stats -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Perheen yhteenveto</h6>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-4">
+                    <h4 class="text-primary">{{ children|length }}</h4>
+                    <small class="text-muted">Lapsia</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="text-success">{{ children|sum(attribute='points') }}</h4>
+                    <small class="text-muted">Kokonaispisteet</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="text-warning">{{ (children|sum(attribute='points') / children|length)|round(1) if children|length > 0 else 0 }}</h4>
+                    <small class="text-muted">Keskim. pisteet</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-child fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted mb-3">Ei vielä lapsia lisätty</h4>
+        <p class="text-muted mb-4">Lisää lapsesi aloittaaksesi hauskan ja palkitsevan kotityöjärjestelmän!</p>
+        <a href="{{ url_for('create_child') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Lisää ensimmäinen lapsi
+        </a>
+    </div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-bolt"></i> Pikatoiminnot</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6">
+                <a href="{{ url_for('create_task') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-plus"></i> Luo tehtävä
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{{ url_for('parent_dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">
+                    <i class="fas fa-home"></i> Hallintapaneeli
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tips for Parents -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Vinkkejä menestykseen</h6>
+    </div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Aloita pienestä:</strong> Aloita helpoilla 5-pisteen tehtävillä
+            </li>
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Ole johdonmukainen:</strong> Luo tehtäviä säännöllisesti
+            </li>
+            <li class="mb-2">
+                <i class="fas fa-check text-success"></i>
+                <strong>Juhli voittoja:</strong> Kehu valmiita tehtäviä
+            </li>
+            <li class="mb-0">
+                <i class="fas fa-check text-success"></i>
+                <strong>Aseta tavoitteet:</strong> Luo pistetavoitteet palkintoja varten
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %} 
