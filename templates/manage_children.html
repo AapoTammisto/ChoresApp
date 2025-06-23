@@ -42,6 +42,11 @@
                            title="Katso historia">
                             <i class="fas fa-history"></i> Historia
                         </a>
+                        <a href="{{ url_for('delete_child', child_id=child.id) }}" 
+                           class="btn btn-outline-danger btn-sm" 
+                           title="Poista lapsi" onclick="return confirm('Haluatko varmasti poistaa tämän lapsen ja kaiken siihen liittyvän historian? Tätä toimintoa ei voi perua!')">
+                            <i class="fas fa-trash"></i> Poista
+                        </a>
                     </div>
                     <small class="text-muted d-block mt-2">Tilin ID: {{ child.id }}</small>
                 </div>

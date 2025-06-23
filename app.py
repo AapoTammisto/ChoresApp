@@ -1272,6 +1272,33 @@ def download_audit_log():
     output.seek(0)
     return Response(output, mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=audit_log.csv'})
 
+@app.route('/parent/children/<int:child_id>/delete', methods=['GET', 'POST'])
+def delete_child(child_id):
+    if 'user_id' not in session or session['role'] != 'parent':
+        return redirect(url_for('login'))
+    child = User.query.get_or_404(child_id)
+    if child.role != 'child':
+        flash('Vain lapsen tilejä voi poistaa.')
+        return redirect(url_for('manage_children'))
+    parent = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if not password or not check_password_hash(parent.password_hash, password):
+            flash('Väärä salasana. Poisto peruttu.')
+            return render_template('confirm_delete_child.html', child=child)
+        # Delete all task completions for this child
+        TaskCompletion.query.filter_by(user_id=child.id).delete()
+        # Delete all reward purchases for this child
+        RewardPurchase.query.filter_by(user_id=child.id).delete()
+        # Delete the child
+        db.session.delete(child)
+        db.session.commit()
+        log_action(f'Parent deleted child: {child.username}')
+        flash(f'Lapsi {child.username} ja kaikki siihen liittyvä historia on poistettu.')
+        return redirect(url_for('manage_children'))
+    # GET: show confirmation form
+    return render_template('confirm_delete_child.html', child=child)
+
 def log_action(action):
     from flask import request, session
     user_id = session.get('user_id')
