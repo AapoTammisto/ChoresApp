@@ -64,6 +64,7 @@ class TaskCompletion(db.Model):
     approved_by_parent = db.Column(db.Boolean, default=False)
     approved_at = db.Column(db.DateTime, nullable=True)
     approved_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    comment = db.Column(db.Text, nullable=True)  # Child's comment when completing the task
 
     # Relationship to Task
     task = db.relationship('Task', backref='completions')
@@ -451,7 +452,7 @@ def pick_task(task_id):
         flash('Tehtävä valittu onnistuneesti!')
         return redirect(url_for('child_dashboard'))
 
-@app.route('/child/tasks/<int:task_id>/complete')
+@app.route('/child/tasks/<int:task_id>/complete', methods=['GET', 'POST'])
 def complete_task(task_id):
     if 'user_id' not in session or session['role'] != 'child':
         return redirect(url_for('login'))
@@ -461,23 +462,30 @@ def complete_task(task_id):
         flash('Voit valmistaa vain sinulle annettuja tehtäviä')
         return redirect(url_for('child_dashboard'))
     
-    # Mark task as pending approval
-    task.status = 'pending_approval'
-    task.completed_at = datetime.utcnow()
+    if request.method == 'POST':
+        comment = request.form.get('comment', '').strip()
+        
+        # Mark task as pending approval
+        task.status = 'pending_approval'
+        task.completed_at = datetime.utcnow()
+        
+        # Record completion (without awarding points yet)
+        completion = TaskCompletion(
+            task_id=task.id,
+            user_id=session['user_id'],
+            points_earned=task.points,
+            approved_by_parent=False,
+            comment=comment if comment else None
+        )
+        
+        db.session.add(completion)
+        db.session.commit()
+        
+        flash('Tehtävä valmistunut! Odotetaan vanhemman hyväksyntää.')
+        return redirect(url_for('child_dashboard'))
     
-    # Record completion (without awarding points yet)
-    completion = TaskCompletion(
-        task_id=task.id,
-        user_id=session['user_id'],
-        points_earned=task.points,
-        approved_by_parent=False
-    )
-    
-    db.session.add(completion)
-    db.session.commit()
-    
-    flash('Tehtävä valmistunut! Odotetaan vanhemman hyväksyntää.')
-    return redirect(url_for('child_dashboard'))
+    # GET: show completion form
+    return render_template('complete_task.html', task=task)
 
 @app.route('/parent/children')
 def manage_children():

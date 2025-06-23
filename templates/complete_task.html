@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Merkitse tehtävä valmiiksi - Kotityöapp{% endblock %}
+{% block header %}Merkitse tehtävä valmiiksi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-check-circle"></i> Merkitse tehtävä valmiiksi</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <h6>{{ task.title }}</h6>
+            {% if task.description %}
+            <p class="text-muted">{{ task.description }}</p>
+            {% endif %}
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary">
+                    <i class="fas fa-star"></i> {{ task.points }} pistettä
+                </span>
+                {% for difficulty_setting in difficulty_settings %}
+                    {% if difficulty_setting.name == task.difficulty %}
+                        <span class="badge bg-{{ difficulty_setting.color }}">
+                            {{ difficulty_setting.display_name }}
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <form method="POST">
+            <div class="mb-3">
+                <label for="comment" class="form-label">
+                    <i class="fas fa-comment"></i> Kommentti (valinnainen)
+                </label>
+                <textarea class="form-control" id="comment" name="comment" rows="3" 
+                          placeholder="Kerro vanhemmalle mitä teit tai lisää muita huomioita..."></textarea>
+                <small class="text-muted">Vanhempi näkee tämän kommentin hyväksyntää tehdessään</small>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('child_dashboard') }}" class="btn btn-secondary flex-fill">
+                    <i class="fas fa-arrow-left"></i> Peruuta
+                </a>
+                <button type="submit" class="btn btn-success flex-fill">
+                    <i class="fas fa-check"></i> Merkitse valmiiksi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
