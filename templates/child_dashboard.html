@@ -138,10 +138,17 @@
                                 {% endif %}
                                 <span class="badge bg-warning">Kesken</span>
                             </div>
-                            <a href="{{ url_for('complete_task', task_id=task.id) }}" 
-                               class="btn btn-success btn-sm">
-                                <i class="fas fa-check"></i> Merkitse valmiiksi
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('complete_task', task_id=task.id) }}" 
+                                   class="btn btn-success btn-sm">
+                                    <i class="fas fa-check"></i> Merkitse valmiiksi
+                                </a>
+                                <a href="{{ url_for('cancel_task', task_id=task.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Haluatko varmasti perua tämän tehtävän?')">
+                                    <i class="fas fa-times"></i> Peruuta
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
