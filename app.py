@@ -1119,8 +1119,7 @@ def reject_reward_purchase(purchase_id):
     reward = db.session.get(Reward, purchase.reward_id)
     child = db.session.get(User, purchase.user_id)
     
-    # Refund points
-    child.points += purchase.points_spent
+    # Delete the purchase record
     db.session.delete(purchase)
     db.session.commit()
     log_action(f'Parent rejected reward purchase: {reward.title} for {child.username}')
