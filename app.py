@@ -1307,6 +1307,32 @@ def delete_child(child_id):
     # GET: show confirmation form
     return render_template('confirm_delete_child.html', child=child)
 
+@app.route('/child/tasks/<int:task_id>/cancel')
+def cancel_task(task_id):
+    if 'user_id' not in session or session['role'] != 'child':
+        return redirect(url_for('login'))
+    
+    task = Task.query.get_or_404(task_id)
+    if task.assigned_to != session['user_id'] or task.status != 'in_progress':
+        flash('Voit perua vain sinulle annettuja ja kesken olevia tehtäviä')
+        return redirect(url_for('child_dashboard'))
+    
+    if task.always_available:
+        # For always_available tasks, delete this instance since the original is still available
+        db.session.delete(task)
+        db.session.commit()
+        flash('Tehtävä peruttu! Toistuva tehtävä on edelleen saatavilla.')
+    else:
+        # For regular tasks, make them available again
+        task.status = 'available'
+        task.assigned_to = None
+        task.completed_at = None
+        db.session.commit()
+        flash('Tehtävä peruttu! Tehtävä on nyt taas saatavilla.')
+    
+    log_action(f'Child {session["username"]} cancelled task: {task.title}')
+    return redirect(url_for('child_dashboard'))
+
 def log_action(action):
     from flask import request, session
     user_id = session.get('user_id')
