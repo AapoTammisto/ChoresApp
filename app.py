@@ -1280,11 +1280,10 @@ def delete_child(child_id):
     if child.role != 'child':
         flash('Vain lapsen tilejä voi poistaa.')
         return redirect(url_for('manage_children'))
-    parent = User.query.get(session['user_id'])
     if request.method == 'POST':
-        password = request.form.get('password')
-        if not password or not check_password_hash(parent.password_hash, password):
-            flash('Väärä salasana. Poisto peruttu.')
+        confirm_name = request.form.get('confirm_name', '').strip()
+        if confirm_name != child.username:
+            flash('Nimi ei täsmää. Poisto peruttu.')
             return render_template('confirm_delete_child.html', child=child)
         # Delete all task completions for this child
         TaskCompletion.query.filter_by(user_id=child.id).delete()

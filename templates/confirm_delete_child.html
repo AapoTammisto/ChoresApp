@@ -23,10 +23,10 @@
         </p>
         <form method="POST">
             <div class="mb-3">
-                <label for="password" class="form-label">
-                    Vahvista vanhemman salasana poiston varmistamiseksi
+                <label for="confirm_name" class="form-label">
+                    Vahvista poisto kirjoittamalla lapsen nimi (<strong>{{ child.username }}</strong>) alle:
                 </label>
-                <input type="password" class="form-control" id="password" name="password" required autofocus>
+                <input type="text" class="form-control" id="confirm_name" name="confirm_name" required autofocus placeholder="Syötä lapsen nimi tarkasti">
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ url_for('manage_children') }}" class="btn btn-secondary flex-fill">
