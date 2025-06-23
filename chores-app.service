@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/ChoresApp
-ExecStart=/usr/bin/python3 /home/pi/ChoresApp/app.py
+User=aapo
+WorkingDirectory=/home/aapo/ChoresApp
+ExecStart=/usr/bin/python3 /home/aapo/ChoresApp/app.py
 Restart=always
 RestartSec=10
 Environment=FLASK_ENV=production
