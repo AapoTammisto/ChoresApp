@@ -86,6 +86,15 @@ class RewardPurchase(db.Model):
     # Relationships
     reward = db.relationship('Reward', backref='purchases')
 
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    username = db.Column(db.String(80), nullable=True)
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+
 # Routes
 @app.route('/')
 def index():
@@ -128,8 +137,10 @@ def login():
             session['username'] = parent.username
             session['role'] = parent.role
             
+            log_action('Parent logged in')
             return redirect(url_for('parent_dashboard'))
         else:
+            log_action('Failed parent login attempt')
             flash('Virheellinen salasana')
     
     return render_template('login.html')
@@ -145,8 +156,10 @@ def child_login():
                 session['user_id'] = child.id
                 session['username'] = child.username
                 session['role'] = 'child'
+                log_action(f'Child {child.username} logged in')
                 return redirect(url_for('child_dashboard'))
         
+        log_action('Failed child login attempt')
         flash('Valitse lapsi')
     
     children = User.query.filter_by(role='child').all()
@@ -154,6 +167,7 @@ def child_login():
 
 @app.route('/logout')
 def logout():
+    log_action('User logged out')
     session.clear()
     return redirect(url_for('index'))
 
@@ -331,6 +345,7 @@ def create_task():
         
         try:
             db.session.commit()
+            log_action(f'Parent created task: {title}')
             print(f"DEBUG: Successfully created task with title: {title}")
         except Exception as e:
             db.session.rollback()
@@ -376,6 +391,7 @@ def edit_task(task_id):
             task.due_date = None
         
         db.session.commit()
+        log_action(f'Parent edited task: {task.title}')
         flash('Tehtävä päivitetty onnistuneesti!')
         return redirect(url_for('parent_dashboard'))
     
@@ -389,6 +405,7 @@ def delete_task(task_id):
     
     task = Task.query.get_or_404(task_id)
     
+    log_action(f'Parent deleted task: {task.title}')
     db.session.delete(task)
     db.session.commit()
     flash('Tehtävä poistettu onnistuneesti!')
@@ -1204,6 +1221,29 @@ def delete_difficulty_setting(setting_id):
     db.session.commit()
     flash('Vaikeustaso poistettu onnistuneesti!')
     return redirect(url_for('manage_difficulty_settings'))
+
+@app.route('/parent/audit_log')
+def view_audit_log():
+    if 'user_id' not in session or session['role'] != 'parent':
+        return redirect(url_for('login'))
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
+    return render_template('audit_log.html', logs=logs)
+
+def log_action(action):
+    from flask import request, session
+    user_id = session.get('user_id')
+    username = session.get('username')
+    ip_address = request.remote_addr
+    user_agent = request.headers.get('User-Agent')
+    log = AuditLog(
+        user_id=user_id,
+        username=username,
+        action=action,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    db.session.add(log)
+    db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
