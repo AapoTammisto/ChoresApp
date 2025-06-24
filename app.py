@@ -1,3 +1,7 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+logging.info("SERVICE STARTED TEST LOG")
+
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, Response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
@@ -6,9 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 import csv
 from io import StringIO
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
