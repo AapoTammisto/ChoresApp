@@ -280,6 +280,21 @@ def child_dashboard():
     # Get difficulty settings for display
     difficulty_settings = DifficultySetting.query.order_by(DifficultySetting.points.asc()).all()
     
+    # Get all active rewards for this child
+    all_rewards = Reward.query.filter(
+        Reward.is_active == True
+    ).all()
+    available_rewards = []
+    for reward in all_rewards:
+        is_assigned = True
+        if reward.assigned_children:
+            assigned_child_ids = [int(x.strip()) for x in reward.assigned_children.split(',') if x.strip()]
+            if user.id not in assigned_child_ids:
+                is_assigned = False
+        if is_assigned:
+            available_rewards.append(reward)
+    available_rewards.sort(key=lambda x: x.title)
+    
     return render_template('child_dashboard.html', 
                          available_tasks=available_tasks, 
                          my_tasks=my_tasks, 
@@ -287,7 +302,8 @@ def child_dashboard():
                          completed_tasks=completed_tasks,
                          pending_reward_purchases=pending_reward_purchases,
                          difficulty_settings=difficulty_settings,
-                         user=user)
+                         user=user,
+                         rewards=available_rewards)
 
 @app.route('/parent/tasks/create', methods=['GET', 'POST'])
 def create_task():
