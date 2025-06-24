@@ -11,17 +11,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- New Tasks Notification Banner -->
-{% if has_new_tasks %}
-<div class="alert alert-success d-flex align-items-center mb-4" role="alert">
-    <i class="fas fa-bell fa-lg me-2"></i>
-    <div>
-        Sinulle on lisätty uusia tehtäviä!
-        <a href="#available" class="alert-link ms-2" data-bs-toggle="tab">Katso uudet tehtävät</a>
-    </div>
-</div>
-{% endif %}
-
 <!-- Points Display -->
 <div class="stats-card mb-4">
     <div class="stats-number">{{ user.points }}</div>

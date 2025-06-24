@@ -247,7 +247,6 @@ def child_dashboard():
     
     # Filter tasks based on assignment
     available_tasks = []
-    new_task_ids = []
     for task in all_tasks:
         # Check if task is assigned to this child (or no specific assignment)
         is_assigned = True
@@ -260,9 +259,6 @@ def child_dashboard():
         # Add to available tasks if it's available or always available
         if task.status == 'available' or task.always_available:
             available_tasks.append(task)
-            # Check if task is new since last login
-            if user.last_login is not None and task.created_at > user.last_login:
-                new_task_ids.append(task.id)
     
     my_tasks = Task.query.filter_by(assigned_to=user.id, status='in_progress').order_by(Task.title.asc()).all()
     pending_tasks = Task.query.filter_by(assigned_to=user.id, status='pending_approval').order_by(Task.title.asc()).all()
@@ -295,16 +291,6 @@ def child_dashboard():
             available_rewards.append(reward)
     available_rewards.sort(key=lambda x: x.title)
     
-    # New tasks notification flag
-    has_new_tasks = len(new_task_ids) > 0
-
-    # DEBUG PRINTS
-    logging.info(f"Child last_login: {user.last_login}")
-    for task in available_tasks:
-        logging.info(f"Task: {task.title}, created_at: {task.created_at}, is_new: {user.last_login is not None and task.created_at > user.last_login}")
-    logging.info(f"new_task_ids: {new_task_ids}")
-    logging.info(f"has_new_tasks: {has_new_tasks}")
-
     return render_template('child_dashboard.html', 
                          available_tasks=available_tasks, 
                          my_tasks=my_tasks, 
@@ -313,9 +299,7 @@ def child_dashboard():
                          pending_reward_purchases=pending_reward_purchases,
                          difficulty_settings=difficulty_settings,
                          user=user,
-                         rewards=available_rewards,
-                         new_task_ids=new_task_ids,
-                         has_new_tasks=has_new_tasks)
+                         rewards=available_rewards)
 
 @app.route('/parent/tasks/create', methods=['GET', 'POST'])
 def create_task():
