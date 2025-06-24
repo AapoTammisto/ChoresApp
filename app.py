@@ -23,6 +23,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'parent' or 'child'
     points = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)  # Track last login for children
 
 class DifficultySetting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -161,6 +162,10 @@ def child_login():
                 session['user_id'] = child.id
                 session['username'] = child.username
                 session['role'] = 'child'
+                # Update last_login to now
+                from datetime import datetime
+                child.last_login = datetime.utcnow()
+                db.session.commit()
                 log_action(f'Child {child.username} logged in')
                 return redirect(url_for('child_dashboard'))
         
@@ -236,14 +241,9 @@ def child_dashboard():
         ((Task.always_available == True) & (Task.status != 'completed'))
     ).all()
     
-    # Debug: Print all tasks found
-    print(f"DEBUG: Child {user.username} - Found {len(all_tasks)} total tasks (available or always_available but not completed)")
-    for task in all_tasks:
-        print(f"DEBUG: Task ID {task.id}, Title: {task.title}, Status: {task.status}, Always Available: {task.always_available}, Assigned Children: {task.assigned_children}")
-    
     # Filter tasks based on assignment
     available_tasks = []
-    
+    new_task_ids = []
     for task in all_tasks:
         # Check if task is assigned to this child (or no specific assignment)
         is_assigned = True
@@ -251,18 +251,14 @@ def child_dashboard():
             assigned_child_ids = [int(x.strip()) for x in task.assigned_children.split(',') if x.strip()]
             if user.id not in assigned_child_ids:
                 is_assigned = False
-        
         if not is_assigned:
             continue
-            
         # Add to available tasks if it's available or always available
         if task.status == 'available' or task.always_available:
             available_tasks.append(task)
-    
-    # Debug: Print final available tasks
-    print(f"DEBUG: Child {user.username} - Final available tasks: {len(available_tasks)}")
-    for task in available_tasks:
-        print(f"DEBUG: Available Task ID {task.id}, Title: {task.title}, Status: {task.status}")
+            # Check if task is new since last login
+            if user.last_login is not None and task.created_at > user.last_login:
+                new_task_ids.append(task.id)
     
     my_tasks = Task.query.filter_by(assigned_to=user.id, status='in_progress').order_by(Task.title.asc()).all()
     pending_tasks = Task.query.filter_by(assigned_to=user.id, status='pending_approval').order_by(Task.title.asc()).all()
@@ -295,6 +291,9 @@ def child_dashboard():
             available_rewards.append(reward)
     available_rewards.sort(key=lambda x: x.title)
     
+    # New tasks notification flag
+    has_new_tasks = len(new_task_ids) > 0
+    
     return render_template('child_dashboard.html', 
                          available_tasks=available_tasks, 
                          my_tasks=my_tasks, 
@@ -303,7 +302,9 @@ def child_dashboard():
                          pending_reward_purchases=pending_reward_purchases,
                          difficulty_settings=difficulty_settings,
                          user=user,
-                         rewards=available_rewards)
+                         rewards=available_rewards,
+                         new_task_ids=new_task_ids,
+                         has_new_tasks=has_new_tasks)
 
 @app.route('/parent/tasks/create', methods=['GET', 'POST'])
 def create_task():

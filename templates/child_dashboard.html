@@ -11,6 +11,17 @@
 {% endblock %}
 
 {% block content %}
+<!-- New Tasks Notification Banner -->
+{% if has_new_tasks %}
+<div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+    <i class="fas fa-bell fa-lg me-2"></i>
+    <div>
+        Sinulle on lisätty uusia tehtäviä!
+        <a href="#available" class="alert-link ms-2" data-bs-toggle="tab">Katso uudet tehtävät</a>
+    </div>
+</div>
+{% endif %}
+
 <!-- Points Display -->
 <div class="stats-card mb-4">
     <div class="stats-number">{{ user.points }}</div>
@@ -66,7 +77,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                            <h6 class="card-title mb-1">{{ task.title }}</h6>
+                            <h6 class="card-title mb-1">
+                                {{ task.title }}
+                                {% if new_task_ids and task.id in new_task_ids %}
+                                    <span class="badge bg-success ms-2">Uusi</span>
+                                {% endif %}
+                            </h6>
                             {% if task.description %}
                             <p class="card-text text-muted small mb-2">{{ task.description }}</p>
                             {% endif %}
