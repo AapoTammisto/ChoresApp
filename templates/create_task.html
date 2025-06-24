@@ -170,31 +170,25 @@ document.getElementById('difficulty').addEventListener('change', function() {
 document.getElementById('due_date').min = new Date().toISOString().split('T')[0];
 
 // Handle child assignment logic
-document.getElementById('assign_all').addEventListener('change', function() {
-    const childCheckboxes = document.querySelectorAll('.child-checkbox');
-    childCheckboxes.forEach(checkbox => {
-        checkbox.disabled = this.checked;
-        if (this.checked) {
-            checkbox.checked = false;
-        }
-    });
-});
+// FIXED: Enable/disable child checkboxes based on assign_all
+const assignAllCheckbox = document.getElementById('assign_all');
+const childCheckboxes = document.querySelectorAll('.child-checkbox');
 
-// Handle individual child selection
-document.querySelectorAll('.child-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const assignAllCheckbox = document.getElementById('assign_all');
-        if (this.checked) {
-            assignAllCheckbox.checked = false;
-            assignAllCheckbox.disabled = true;
-        } else {
-            // Check if any other child is selected
-            const anyChildSelected = Array.from(document.querySelectorAll('.child-checkbox')).some(cb => cb.checked);
-            if (!anyChildSelected) {
-                assignAllCheckbox.disabled = false;
-            }
-        }
-    });
-});
+function updateChildCheckboxes() {
+    if (assignAllCheckbox.checked) {
+        childCheckboxes.forEach(cb => {
+            cb.disabled = true;
+            cb.checked = false;
+        });
+    } else {
+        childCheckboxes.forEach(cb => {
+            cb.disabled = false;
+        });
+    }
+}
+
+assignAllCheckbox.addEventListener('change', updateChildCheckboxes);
+// Initialize on page load
+updateChildCheckboxes();
 </script>
 {% endblock %} 

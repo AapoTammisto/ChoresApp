@@ -374,6 +374,7 @@ def edit_task(task_id):
         return redirect(url_for('login'))
     
     task = Task.query.get_or_404(task_id)
+    children = User.query.filter_by(role='child').all()
     
     if request.method == 'POST':
         task.title = request.form['title']
@@ -384,7 +385,7 @@ def edit_task(task_id):
         difficulty_setting = DifficultySetting.query.filter_by(name=difficulty).first()
         if not difficulty_setting:
             flash('Virheellinen vaikeustaso')
-            return render_template('edit_task.html', task=task)
+            return render_template('edit_task.html', task=task, children=children, difficulty_settings=DifficultySetting.query.order_by(DifficultySetting.points.asc()).all())
         
         task.points = difficulty_setting.points
         task.difficulty = difficulty
@@ -395,13 +396,24 @@ def edit_task(task_id):
         else:
             task.due_date = None
         
+        # Always available
+        task.always_available = request.form.get('always_available') == 'on'
+        
+        # Assigned children logic
+        assign_all = request.form.get('assign_all') == 'on'
+        assigned_children = request.form.getlist('assigned_children')
+        if assign_all or not assigned_children:
+            task.assigned_children = None
+        else:
+            task.assigned_children = ','.join(assigned_children)
+        
         db.session.commit()
         log_action(f'Parent edited task: {task.title}')
         flash('Tehtävä päivitetty onnistuneesti!')
         return redirect(url_for('parent_dashboard'))
     
     difficulty_settings = DifficultySetting.query.order_by(DifficultySetting.points.asc()).all()
-    return render_template('edit_task.html', task=task, difficulty_settings=difficulty_settings)
+    return render_template('edit_task.html', task=task, children=children, difficulty_settings=difficulty_settings)
 
 @app.route('/parent/tasks/<int:task_id>/delete')
 def delete_task(task_id):
