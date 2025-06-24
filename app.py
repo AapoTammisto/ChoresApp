@@ -6,6 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 import csv
 from io import StringIO
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
@@ -295,11 +298,11 @@ def child_dashboard():
     has_new_tasks = len(new_task_ids) > 0
 
     # DEBUG PRINTS
-    print(f"Child last_login: {user.last_login}", flush=True)
+    logging.info(f"Child last_login: {user.last_login}")
     for task in available_tasks:
-        print(f"Task: {task.title}, created_at: {task.created_at}, is_new: {user.last_login is not None and task.created_at > user.last_login}", flush=True)
-    print(f"new_task_ids: {new_task_ids}", flush=True)
-    print(f"has_new_tasks: {has_new_tasks}", flush=True)
+        logging.info(f"Task: {task.title}, created_at: {task.created_at}, is_new: {user.last_login is not None and task.created_at > user.last_login}")
+    logging.info(f"new_task_ids: {new_task_ids}")
+    logging.info(f"has_new_tasks: {has_new_tasks}")
 
     return render_template('child_dashboard.html', 
                          available_tasks=available_tasks, 
