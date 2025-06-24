@@ -36,8 +36,8 @@
 {% if rewards %}
     <div class="row">
         {% for reward in rewards %}
-        <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100 {% if user.points < reward.points_cost %}opacity-50 border-secondary{% endif %}">
+        <div class="col-12 mb-3">
+            <div class="card h-100 {% if user.points < reward.points_cost %}opacity-50 border-secondary{% endif %}" style="max-width: 700px; margin: 0 auto;">
                 <div class="card-body">
                     <h6 class="card-title">{{ reward.title }}</h6>
                     <p class="card-text text-muted small mb-3">
