@@ -598,6 +598,7 @@ def edit_template(template_id):
         return redirect(url_for('login'))
     
     template = TaskTemplate.query.get_or_404(template_id)
+    children = User.query.filter_by(role='child').all()
     
     if request.method == 'POST':
         template.title = request.form['title']
@@ -608,10 +609,23 @@ def edit_template(template_id):
         difficulty_setting = DifficultySetting.query.filter_by(name=difficulty).first()
         if not difficulty_setting:
             flash('Virheellinen vaikeustaso')
-            return render_template('edit_template.html', template=template)
+            return render_template('edit_template.html', template=template, children=children, difficulty_settings=DifficultySetting.query.order_by(DifficultySetting.points.asc()).all())
         
         template.points = difficulty_setting.points
         template.difficulty = difficulty
+        
+        # Always available
+        template.always_available = request.form.get('always_available') == 'on'
+        
+        # Assigned children logic
+        assign_all = request.form.get('assign_all') == 'on'
+        assigned_children = request.form.getlist('assigned_children')
+        if assign_all or not assigned_children:
+            template.assigned_children = None
+        else:
+            template.assigned_children = ','.join(assigned_children)
+        
+        # Due date is not typically part of a template, so we skip it
         
         db.session.commit()
         log_action(f'Parent edited task template: {template.title}')
@@ -619,7 +633,7 @@ def edit_template(template_id):
         return redirect(url_for('parent_dashboard'))
     
     difficulty_settings = DifficultySetting.query.order_by(DifficultySetting.points.asc()).all()
-    return render_template('edit_template.html', template=template, difficulty_settings=difficulty_settings)
+    return render_template('edit_template.html', template=template, children=children, difficulty_settings=difficulty_settings)
 
 @app.route('/parent/tasks/create_from_template/<int:template_id>', methods=['POST'])
 def create_task_from_template(template_id):

@@ -37,6 +37,43 @@
                 <small class="text-muted">Vaikeustaso määrittää automaattisesti tehtävän pisteet</small>
             </div>
             
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="always_available" name="always_available" {% if template.always_available %}checked{% endif %}>
+                    <label class="form-check-label" for="always_available">
+                        <i class="fas fa-infinity"></i> Toistuva
+                    </label>
+                    <small class="form-text text-muted d-block">Tämä tehtäväpohja on toistuva lapsille, vaikka se olisi jo valmistunut</small>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="fas fa-users"></i> Kohdista lapsille
+                </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="assign_all" name="assign_all" {% if not template.assigned_children %}checked{% endif %}>
+                    <label class="form-check-label" for="assign_all">
+                        Kaikille lapsille
+                    </label>
+                </div>
+                {% if children %}
+                <div class="mt-2">
+                    <small class="text-muted">Tai valitse tiettyjä lapsia:</small>
+                    {% set assigned_ids = (template.assigned_children.split(',') if template.assigned_children else []) %}
+                    {% for child in children %}
+                    <div class="form-check">
+                        <input class="form-check-input child-checkbox" type="checkbox" 
+                               id="child_{{ child.id }}" name="assigned_children" 
+                               value="{{ child.id }}" {% if template.assigned_children and (child.id|string) in assigned_ids %}checked{% endif %} {% if not template.assigned_children %}disabled{% endif %}>
+                        <label class="form-check-label" for="child_{{ child.id }}">
+                            {{ child.username }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
             <div class="d-flex gap-2">
                 <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary flex-fill">
                     <i class="fas fa-arrow-left"></i> Peruuta
@@ -78,5 +115,24 @@ document.getElementById('difficulty').addEventListener('change', function() {
     // Points are now automatically set by the server based on difficulty setting
     console.log('Selected difficulty points:', points);
 });
+
+// Handle child assignment logic
+const assignAllCheckbox = document.getElementById('assign_all');
+const childCheckboxes = document.querySelectorAll('.child-checkbox');
+function updateChildCheckboxes() {
+    if (assignAllCheckbox.checked) {
+        childCheckboxes.forEach(cb => {
+            cb.disabled = true;
+            cb.checked = false;
+        });
+    } else {
+        childCheckboxes.forEach(cb => {
+            cb.disabled = false;
+        });
+    }
+}
+assignAllCheckbox.addEventListener('change', updateChildCheckboxes);
+// Initialize on page load
+updateChildCheckboxes();
 </script>
 {% endblock %} 
