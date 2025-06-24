@@ -115,16 +115,18 @@
                         <span class="badge bg-{{ diff.color if diff else 'secondary' }}">
                             {{ diff.display_name if diff else task.difficulty }}
                         </span>
-                        <span class="badge bg-{{ 'success' if task.status == 'completed' else 'warning' if task.status == 'in_progress' else 'secondary' }}">
-                            {% if task.status == 'completed' %}Valmis
-                            {% elif task.status == 'in_progress' %}Kesken
-                            {% elif task.status == 'pending_approval' %}Odottaa hyväksyntää
-                            {% else %}Vapaana{% endif %}
-                        </span>
+                        {% if not task.always_available %}
+                            <span class="badge bg-{{ 'success' if task.status == 'completed' else 'warning' if task.status == 'in_progress' else 'secondary' }}">
+                                {% if task.status == 'completed' %}Valmis
+                                {% elif task.status == 'in_progress' %}Kesken
+                                {% elif task.status == 'pending_approval' %}Odottaa hyväksyntää
+                                {% else %}Vapaana{% endif %}
+                            </span>
+                        {% endif %}
                         {% if task.always_available %}
-                        <span class="badge bg-info">
-                            <i class="fas fa-infinity"></i> Toistuva
-                        </span>
+                            <span class="badge bg-info">
+                                <i class="fas fa-infinity"></i> Toistuva
+                            </span>
                         {% endif %}
                     </div>
                     {% if task.assigned_children %}
