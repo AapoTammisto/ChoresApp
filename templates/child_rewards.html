@@ -37,7 +37,7 @@
     <div class="row">
         {% for reward in rewards %}
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100">
+            <div class="card h-100 {% if user.points < reward.points_cost %}opacity-50 border-secondary{% endif %}">
                 <div class="card-body">
                     <h6 class="card-title">{{ reward.title }}</h6>
                     <p class="card-text text-muted small mb-3">
@@ -54,7 +54,7 @@
                             </span>
                         {% else %}
                             <span class="badge bg-warning">
-                                <i class="fas fa-exclamation-triangle"></i> Ei riitä pisteitä
+                                <i class="fas fa-lock"></i> Ei riitä pisteitä
                             </span>
                         {% endif %}
                     </div>
@@ -62,7 +62,7 @@
                     {% if user.points >= reward.points_cost %}
                         <a href="{{ url_for('purchase_reward', reward_id=reward.id) }}" 
                            class="btn btn-success w-100"
-                           onclick="return confirm('Ostatko palkinnon \"{{ reward.title }}\" {{ reward.points_cost }} pisteellä?')">
+                           onclick="return confirm('Ostatko palkinnon &quot;{{ reward.title }}&quot; {{ reward.points_cost }} pisteellä?')">
                             <i class="fas fa-shopping-cart"></i> Osta palkinto
                         </a>
                     {% else %}
@@ -82,4 +82,11 @@
         <p class="text-muted">Vanhempi ei ole vielä luonut palkintoja.</p>
     </div>
 {% endif %}
+
+<style>
+.opacity-50 {
+    opacity: 0.5;
+    filter: grayscale(30%);
+}
+</style>
 {% endblock %} 

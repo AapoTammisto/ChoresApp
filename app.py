@@ -1065,8 +1065,7 @@ def child_rewards():
             assigned_child_ids = [int(x.strip()) for x in reward.assigned_children.split(',') if x.strip()]
             if user.id not in assigned_child_ids:
                 is_assigned = False
-        
-        if is_assigned and user.points >= reward.points_cost:
+        if is_assigned:
             available_rewards.append(reward)
     
     # Sort rewards alphabetically
