@@ -194,9 +194,9 @@ def parent_dashboard():
     children = User.query.filter_by(role='child').all()
     
     # Debug: Print task count
-    print(f"DEBUG: Found {len(tasks)} active tasks in database")
+    print(f"DEBUG: Found {len(tasks)} active tasks in database", flush=True)
     for task in tasks:
-        print(f"DEBUG: Task ID {task.id}, Title: {task.title}, Status: {task.status}")
+        print(f"DEBUG: Task ID {task.id}, Title: {task.title}, Status: {task.status}", flush=True)
     
     # Get pending approvals
     pending_approvals = TaskCompletion.query.join(Task).filter(
@@ -295,11 +295,11 @@ def child_dashboard():
     has_new_tasks = len(new_task_ids) > 0
 
     # DEBUG PRINTS
-    print(f"Child last_login: {user.last_login}")
+    print(f"Child last_login: {user.last_login}", flush=True)
     for task in available_tasks:
-        print(f"Task: {task.title}, created_at: {task.created_at}, is_new: {user.last_login is not None and task.created_at > user.last_login}")
-    print(f"new_task_ids: {new_task_ids}")
-    print(f"has_new_tasks: {has_new_tasks}")
+        print(f"Task: {task.title}, created_at: {task.created_at}, is_new: {user.last_login is not None and task.created_at > user.last_login}", flush=True)
+    print(f"new_task_ids: {new_task_ids}", flush=True)
+    print(f"has_new_tasks: {has_new_tasks}", flush=True)
 
     return render_template('child_dashboard.html', 
                          available_tasks=available_tasks, 
@@ -354,7 +354,7 @@ def create_task():
             db.session.add(template)
             db.session.flush()  # Get the template ID
             template_id = template.id
-            print(f"DEBUG: Created template with ID: {template_id}")
+            print(f"DEBUG: Created template with ID: {template_id}", flush=True)
         
         task = Task(
             title=title,
@@ -370,15 +370,15 @@ def create_task():
         db.session.add(task)
         
         # Debug: Print task info before commit
-        print(f"DEBUG: About to create task - Title: {task.title}, Status: {task.status}, Template ID: {template_id}")
+        print(f"DEBUG: About to create task - Title: {task.title}, Status: {task.status}, Template ID: {template_id}", flush=True)
         
         try:
             db.session.commit()
             log_action(f'Parent created task: {title}')
-            print(f"DEBUG: Successfully created task with title: {title}")
+            print(f"DEBUG: Successfully created task with title: {title}", flush=True)
         except Exception as e:
             db.session.rollback()
-            print(f"DEBUG: Error creating task: {e}")
+            print(f"DEBUG: Error creating task: {e}", flush=True)
             flash('Virhe tehtävän luomisessa. Yritä uudelleen.')
             return redirect(url_for('create_task'))
         
