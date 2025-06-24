@@ -533,18 +533,6 @@ def create_child():
     
     return render_template('create_child.html')
 
-@app.route('/parent/templates')
-def manage_templates():
-    if 'user_id' not in session or session['role'] != 'parent':
-        return redirect(url_for('login'))
-    
-    templates = TaskTemplate.query.filter(TaskTemplate.id.isnot(None)).order_by(TaskTemplate.title.asc()).all()
-    
-    # Get difficulty settings for display
-    difficulty_settings = DifficultySetting.query.order_by(DifficultySetting.points.asc()).all()
-    
-    return render_template('manage_templates.html', templates=templates, difficulty_settings=difficulty_settings)
-
 @app.route('/parent/templates/create', methods=['GET', 'POST'])
 def create_template():
     if 'user_id' not in session or session['role'] != 'parent':
@@ -574,7 +562,7 @@ def create_template():
         db.session.commit()
         log_action(f'Parent created task template: {title}')
         flash('Tehtäväpohja luotu onnistuneesti!')
-        return redirect(url_for('manage_templates'))
+        return redirect(url_for('parent_dashboard'))
     
     difficulty_settings = DifficultySetting.query.order_by(DifficultySetting.points.asc()).all()
     return render_template('create_template.html', difficulty_settings=difficulty_settings)
