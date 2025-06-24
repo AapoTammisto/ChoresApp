@@ -37,14 +37,8 @@
                 <small class="text-muted">Vaikeustaso määrittää automaattisesti tehtävän pisteet</small>
             </div>
             
-            <!-- Due date field -->
-            <div class="mb-4">
-                <label for="due_date" class="form-label">
-                    <i class="fas fa-calendar"></i> Määräaika (valinnainen)
-                </label>
-                <input type="date" class="form-control" id="due_date" name="due_date" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
-                <small class="text-muted">Jätä tyhjäksi, jos ei ole tiettyä määräaikaa</small>
-            </div>
+            <!-- Due date field (hidden, but preserved) -->
+            <input type="hidden" id="due_date" name="due_date" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
             
             <div class="mb-4">
                 <div class="form-check">
@@ -148,7 +142,7 @@ document.getElementById('difficulty').addEventListener('change', function() {
     }
 });
 
-// Set minimum date to today
+// Set minimum date to today (not visible, but keep for future use)
 document.getElementById('due_date').min = new Date().toISOString().split('T')[0];
 
 // Handle child assignment logic
