@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./instance/chores.db:/app/instance/chores.db 
