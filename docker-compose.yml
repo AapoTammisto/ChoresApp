@@ -5,4 +5,4 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./instance/chores.db:/app/instance/chores.db 
+      - ./chores.db:/app/chores.db 

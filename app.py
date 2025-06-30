@@ -13,7 +13,7 @@ from io import StringIO
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/chores.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chores.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
